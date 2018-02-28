@@ -1,0 +1,24 @@
+{
+    "name": "ollieread/articulate",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ollie Read",
+            "email": "ollie@ollieslab.io"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Ollieread\\Articulate\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ollieread\\Articulate\\ServiceProvider"
+            ]
+        }
+    }
+}
