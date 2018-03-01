@@ -7,18 +7,32 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Entities;
+use Ollieread\Articulate\Mapper;
 
 class Builder extends QueryBuilder
 {
     /**
-     * @var string
+     * @var \Ollieread\Articulate\Mapper
      */
-    protected $entity;
+    protected $mapper;
 
-    public function __construct(ConnectionInterface $connection, Grammar $grammar = null, Processor $processor = null, string $entity)
+    /**
+     * @var \Ollieread\Articulate\Entities
+     */
+    protected $manager;
+
+    public function __construct(
+        ConnectionInterface $connection,
+        Grammar $grammar = null,
+        Processor $processor = null,
+        Entities $manager,
+        Mapper $mapper)
     {
         parent::__construct($connection, $grammar, $processor);
-        $this->entity = $entity;
+
+        $this->mapper  = $mapper;
+        $this->manager = $manager;
     }
 
     public function get($columns = ['*'])
@@ -38,7 +52,9 @@ class Builder extends QueryBuilder
 
     public function newEntityInstance()
     {
-        return new $this->entity;
+        $entity = $this->mapper->getEntity();
+
+        return new $entity;
     }
 
     private function hydrate($attributes = [])

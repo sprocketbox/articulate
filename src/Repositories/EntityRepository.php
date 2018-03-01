@@ -4,6 +4,7 @@ namespace Ollieread\Articulate\Repositories;
 
 use Illuminate\Database\DatabaseManager;
 use Ollieread\Articulate\Database\Builder;
+use Ollieread\Articulate\Entities;
 use Ollieread\Articulate\Mapper;
 
 class EntityRepository
@@ -19,13 +20,19 @@ class EntityRepository
     private $_database;
 
     /**
+     * @var \Ollieread\Articulate\Entities
+     */
+    private $_manager;
+
+    /**
      * @var \Ollieread\Articulate\Mapper
      */
     private $_mapper;
 
-    public function __construct(DatabaseManager $database, Mapper $mapper)
+    public function __construct(DatabaseManager $database, Entities $manager, Mapper $mapper)
     {
         $this->_database = $database;
+        $this->_manager  = $manager;
         $this->_mapper   = $mapper;
         $this->_entity   = $mapper->getEntity();
     }
@@ -37,7 +44,8 @@ class EntityRepository
         $builder    = new Builder($this->_database->connection($connection),
             $this->_database->getQueryGrammar(),
             $this->_database->getPostProcessor(),
-            $this->_entity);
+            $this->_manager,
+            $this->_mapper);
 
         return $builder->from($table);
     }

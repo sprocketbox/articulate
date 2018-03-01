@@ -1,14 +1,19 @@
 {
     "name": "ollieread/articulate",
+    "description": "A simple lightweight drop in to replace Eloquent",
     "type": "library",
     "license": "MIT",
+    "version": "dev-develop",
     "authors": [
         {
             "name": "Ollie Read",
             "email": "ollie@ollieslab.io"
         }
     ],
-    "require": {},
+    "require": {
+        "php": "^7.1",
+        "laravel/framework": "~5.5 || ~5.6"
+    },
     "autoload": {
         "psr-4": {
             "Ollieread\\Articulate\\": "src/"
