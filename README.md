@@ -47,7 +47,7 @@ Entities are basic value key => value stores and represent a row in your databas
 
 An entity should have a getter and a setter for the columns in the database. 
 
-The method name should match the column name is studly case, with getters being prefixed with `get` and setters with `set`. For example;
+The method name should match the column name in studly case, with getters being prefixed with `get` and setters with `set`. For example;
 
     class Test
     {
@@ -135,7 +135,7 @@ An example implementation would be as follows;
 
 ### Repositories
 
-Repositories are how we retrieve instance of our entities. If you're familiar with the repository pattern, you'll recognise this particular way of doing things.
+Repositories are how we retrieve instances of our entities. If you're familiar with the repository pattern, you'll recognise this particular way of doing things.
 
 All user defined repositories should extend the following class;
 
@@ -145,7 +145,7 @@ Within here you may define your own methods as you see fit.
 
 To access an entity specific query builder you will need to call `$this->query()`. The query builder returned is the same as the Laravel query builder, even though it appears as the following class;
 
-    Ollieread\Articular\Database\Builder
+    Ollieread\Articulate\Database\Builder
     
 An example repository would be as follows;
 
