@@ -2,7 +2,7 @@
 
 namespace Ollieread\Articulate\Contracts;
 
-use Ollieread\Articulate\Mapper;
+use Ollieread\Articulate\Mapping;
 
 interface EntityMapping
 {
@@ -12,5 +12,5 @@ interface EntityMapping
 
     public function table(): string;
 
-    public function map(Mapper $mapper);
+    public function map(Mapping $mapper);
 }
