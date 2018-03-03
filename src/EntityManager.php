@@ -4,7 +4,7 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
 
-class Entities
+class EntityManager
 {
     /**
      * @var \Illuminate\Support\Collection
@@ -16,7 +16,7 @@ class Entities
         $this->mappings = new Collection;
     }
 
-    public function registerMapping(EntityMapping $mapping)
+    public function register(EntityMapping $mapping)
     {
         $entity     = $mapping->entity();
         $table      = $mapping->table();
@@ -27,21 +27,21 @@ class Entities
         }
 
         // Create mapper
-        $mapper = new Mapper($entity, $connection ?? config('database.default'), $table);
+        $mapper = new Mapping($entity, $connection ?? config('database.default'), $table);
         $mapping->map($mapper);
 
         // Add the entity mapping
         $this->mappings->put($entity, $mapper);
     }
 
-    public function getMapperForEntity(string $entity): ?Mapper
+    public function getMapping(string $entity): ?Mapping
     {
         return $this->mappings->get($entity, null);
     }
 
     public function repository(string $entity)
     {
-        $mapper = $this->getMapperForEntity($entity);
+        $mapper = $this->getMapping($entity);
         $repository = $mapper->getRepository();
 
         if (class_exists($repository)) {
