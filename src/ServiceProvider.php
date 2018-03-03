@@ -7,7 +7,7 @@ use Illuminate\Support\ServiceProvider as BaseProvider;
 class ServiceProvider extends BaseProvider
 {
     /**
-     * @var \Ollieread\Articulate\Entities
+     * @var \Ollieread\Articulate\EntityManager
      */
     protected $entities;
 
@@ -27,8 +27,8 @@ class ServiceProvider extends BaseProvider
 
     public function register()
     {
-        $this->entities = new Entities;
-        $this->app->instance(Entities::class, $this->entities);
+        $this->entities = new EntityManager;
+        $this->app->instance(EntityManager::class, $this->entities);
         $this->app->instance('entities', $this->entities);
 
         $this->registerEntities();
@@ -39,7 +39,7 @@ class ServiceProvider extends BaseProvider
         $mappings = config('articulate.mappings', []);
 
         foreach ($mappings as $mapping) {
-            $this->entities->registerMapping(new $mapping);
+            $this->entities->register(new $mapping);
         }
     }
 }
