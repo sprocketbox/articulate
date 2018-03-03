@@ -3,6 +3,7 @@
 namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Entities\BaseEntity;
 
 class EntityManager
 {
@@ -45,9 +46,29 @@ class EntityManager
         $repository = $mapper->getRepository();
 
         if (class_exists($repository)) {
-            return new $repository(app('db'), $mapper);
+            return new $repository(app('db'), $this, $mapper);
         }
 
         // Throw an exception
+    }
+
+    public function hydrate(string $entityClass, array $attributes = []): ?BaseEntity
+    {
+        $mapper = $this->getMapping($entityClass);
+
+        if ($mapper) {
+            $entity = new $entityClass;
+
+            foreach ($attributes as $key => $value) {
+                $setter = 'set' . studly_case($key);
+
+                if (method_exists($entity, $setter)) {
+                    $column = $mapper->getColumn($key);
+                    $entity->{$setter}($column->cast($value));
+                }
+            }
+
+            return $entity;
+        }
     }
 }
