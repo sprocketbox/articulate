@@ -32,11 +32,11 @@ class Builder extends QueryBuilder
         $this->_manager = $manager;
     }
 
-    public function setEntity(string $_entity): Builder
+    public function for($entity)
     {
-        $this->_entity = $_entity;
+        $this->_entity = $entity;
 
-        return $this;
+        return $this->from($this->_manager->getMapping($entity)->getTable());
     }
 
     public function get($columns = ['*'])
@@ -63,19 +63,7 @@ class Builder extends QueryBuilder
 
     private function hydrate($attributes = [])
     {
-        $entity  = $this->newEntityInstance();
-        $mapper  = $this->_manager->getMapping($this->_entity);
-
-        foreach ($attributes as $key => $value) {
-            $setter = 'set' . studly_case($key);
-
-            if (method_exists($entity, $setter)) {
-                $column = $mapper->getColumn($key);
-                $entity->{$setter}($column->cast($value));
-            }
-        }
-
-        return $entity;
+        return $this->_manager->hydrate($this->_entity, $attributes);
     }
 
     private function hydrateAll(array $results)
