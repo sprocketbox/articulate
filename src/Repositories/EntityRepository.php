@@ -42,14 +42,13 @@ class EntityRepository
     protected function query(): Builder
     {
         $connection = $this->_mapper->getConnection();
-        $table      = $this->_mapper->getTable();
         $builder    = new Builder(
             $this->_database->connection($connection),
             $this->_database->getQueryGrammar(),
             $this->_database->getPostProcessor(),
             $this->_manager);
 
-        return $builder->from($table);
+        return $builder->for($this->_entity);
     }
 
     public function save(BaseEntity $entity)
