@@ -7,7 +7,7 @@
 - **Author**: Ollie Read 
 - **Author Homepage**: http://ollieread.com
 
-Articulate is a drop in replacement for Eloquent. It moves away from ActiveRecord pattern and finds a nice area that sits neatly between basic queries and the EntityMapper pattern.
+Articulate is a drop in replacement for Eloquent. It moves away from the ActiveRecord pattern and finds a nice area that sits neatly between basic queries and the EntityMapper pattern.
 
 Doctrine is a wonderful package, but it's a monolith. This package is designed to bring a level of optimisation and simplicity, with some of the nice features of both worlds.
 
@@ -35,50 +35,75 @@ It has a single config option, and that is `articulate.mappings`. This is an arr
 
 You can use the entity manager by using the following facade;
 
-    Ollieread\Articulate\Facades\Entities
+    Ollieread\Articulate\Facades\EntityManager
     
 Or you can inject the following manager;
 
-    Ollieread\Articulate\Entities
+    Ollieread\Articulate\EntityManager
 
 ### Entities
 
-Entities are basic value key => value stores and represent a row in your database.
+Entities are basic value key => value stores and represent a row in your database. All entities should extend the following class;
+
+    Ollieread\Articulate\Entities\BaseEntity
 
 An entity should have a getter and a setter for the columns in the database. 
 
 The method name should match the column name in studly case, with getters being prefixed with `get` and setters with `set`. For example;
 
-    class Test
-    {
-        protected $id;
-        protected $name;
-        
+    class Test extends BaseEntity
+    {        
         public function getId(): int
         {
-            return $this->id;
+            return $this->get('id');
         }
         
-        public function setId(string $id): Test
+        public function setId(int $id): Test
         {
-            $this->id = $id;
+            $this->set('id', $id);
     
             return $this;
         }
         
         public function getName(): string
         {
-            return $this->name;
+            return $this->get('name');
         }
         
         public function setName(string $name): Test
         {
-            $this->name = $name;
+            $this->set('name', $name);
     
             return $this;
         }
     }
+    
+The BaseEntity keeps track of the entities attributes, as well as whether or not a particular attribute is dirty. This allows you to have dynamic attributes as well as add custom attributes that shouldn't be persisted to the database.
 
+It also provides a global setter and getter.
+
+The BaseEntity class also contains a `__get(string $attribute)` implementation so you can access attribute as if they were properties. To help with IDE implementation, I suggest that you use the `@property-ready type $attribute` helpers to your entity class doc block. Like the following;
+
+    /**
+     * Class Test
+     *
+     * @property-read int                        $id
+     * @property-read string                     $name
+     * @property-read string                     $description
+     * @property-read \Illuminate\Support\Carbon $created_at
+     * @property-read \Illuminate\Support\Carbon $updated_at
+     *
+     * @package App\Entities
+     */
+    
+#### Setters
+
+Your setters should call the `set(string $column, mixed $value)` method from the BaseEntity.
+
+#### Getters
+
+Your getters should call the `get(string $column)` method from the BaseEntity;
+    
 ### Mappings
 
 Mappings handle the mapping between the entity and its table, connection, repository and even other entities.
@@ -124,6 +149,7 @@ Method | Description |
 :-------|:----|
 `setKey(string $key)` | Defines which column is the primary key |
 `setRepository(string $repository)` | Defines that class that should be used as this entities repository |
+`mapColumn(Ollieread\Articulate\Contracts\Column $column)` | Defines the type of column and returns the instance passed in |
 
 An example implementation would be as follows;
 
@@ -131,7 +157,32 @@ An example implementation would be as follows;
     {
         $mapper->setKey('id');
         $mapper->setRepository(TestRepository::class);
+        $mapper->mapColumn(new IntColumn('id'))->setImmutable();
+        $mapper->mapColumn(new StringColumn('name'));
+        $mapper->mapColumn(new StringColumn('description'));
+        $mapper->mapColumn(new TimestampColumn('created_at'));
+        $mapper->mapColumn(new TimestampColumn('updated_at'));
     }
+    
+#### Column Mapping
+
+Column mapping is used so that the builder hydration knows which columns belong to which entity, as well as allowing database returns to be cast to the correct value.
+
+You can create your own column mapping class providing that it extends the following class;
+
+    Ollieread\Articulate\Contracts\Column
+    
+The available column mappings are as follows;
+
+Class | Description |
+:-------|:----|
+`Ollieread\Articulate\Columns\IntColumn` | Define the column as an integer |
+`Ollieread\Articulate\Columns\StringColumn` | Define the column as a string |
+`Ollieread\Articulate\Columns\TimestampColumn` | Define the column as a timestamp |
+
+You can map columns as dynamic using `setDynamic()`. The will prevent the value from being synced to the database. An example of a dynamic column would be the result of an expression in an SQL query or something generated in the code, that doesn't necessarily have a place in the database.
+
+You can also map columns as being immutable using `setImmutable()`. Immutable columns can only be set during the initial hydrating of the entity, and like the dynamic, are ignored when it comes to syncing with the database.
 
 ### Repositories
 
@@ -159,5 +210,7 @@ An example repository would be as follows;
     
 The `all()` method here would return a `Collection` of `Test` entities.
 
+### Migrations
 
+Migrations are exactly the same, this package doesn't add anything specific regarding that.
 
