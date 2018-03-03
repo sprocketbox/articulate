@@ -3,10 +3,14 @@
 namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Traits\Macroable;
 use Ollieread\Articulate\Relationships\BelongsTo;
 
-class Mapper
+class Mapping
 {
+    use Macroable,
+        Concerns\MapsColumns;
+
     /**
      * @var string
      */
@@ -44,6 +48,7 @@ class Mapper
         $this->table         = $table;
         $this->key           = $key;
         $this->relationships = new Collection;
+        $this->columns       = new Collection;
     }
 
     /**
@@ -81,9 +86,9 @@ class Mapper
     /**
      * @param string $key
      *
-     * @return \Ollieread\Articulate\Mapper
+     * @return \Ollieread\Articulate\Mapping
      */
-    public function setKey(string $key): Mapper
+    public function setKey(string $key): Mapping
     {
         $this->key = $key;
 
@@ -101,9 +106,9 @@ class Mapper
     /**
      * @param string $repository
      *
-     * @return Mapper
+     * @return Mapping
      */
-    public function setRepository(string $repository): Mapper
+    public function setRepository(string $repository): Mapping
     {
         $this->repository = $repository;
 
