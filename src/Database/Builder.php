@@ -7,32 +7,36 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Grammars\Grammar;
 use Illuminate\Database\Query\Processors\Processor;
 use Illuminate\Support\Collection;
-use Ollieread\Articulate\Entities;
-use Ollieread\Articulate\Mapper;
+use Ollieread\Articulate\EntityManager;
 
 class Builder extends QueryBuilder
 {
     /**
-     * @var \Ollieread\Articulate\Mapper
+     * @var \Ollieread\Articulate\EntityManager
      */
-    protected $mapper;
+    protected $_manager;
 
     /**
-     * @var \Ollieread\Articulate\Entities
+     * @var string
      */
-    protected $manager;
+    protected $_entity;
 
     public function __construct(
         ConnectionInterface $connection,
         Grammar $grammar = null,
         Processor $processor = null,
-        Entities $manager,
-        Mapper $mapper)
+        EntityManager $manager)
     {
         parent::__construct($connection, $grammar, $processor);
 
-        $this->mapper  = $mapper;
-        $this->manager = $manager;
+        $this->_manager = $manager;
+    }
+
+    public function setEntity(string $_entity): Builder
+    {
+        $this->_entity = $_entity;
+
+        return $this;
     }
 
     public function get($columns = ['*'])
@@ -52,20 +56,22 @@ class Builder extends QueryBuilder
 
     public function newEntityInstance()
     {
-        $entity = $this->mapper->getEntity();
+        $entity = $this->_entity;
 
         return new $entity;
     }
 
     private function hydrate($attributes = [])
     {
-        $entity = $this->newEntityInstance();
+        $entity  = $this->newEntityInstance();
+        $mapper  = $this->_manager->getMapping($this->_entity);
 
         foreach ($attributes as $key => $value) {
             $setter = 'set' . studly_case($key);
 
             if (method_exists($entity, $setter)) {
-                $entity->{$setter}($value);
+                $column = $mapper->getColumn($key);
+                $entity->{$setter}($column->cast($value));
             }
         }
 
