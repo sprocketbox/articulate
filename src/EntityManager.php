@@ -68,6 +68,8 @@ class EntityManager
                 }
             }
 
+            $entity->clean();
+
             return $entity;
         }
     }

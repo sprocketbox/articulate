@@ -34,4 +34,9 @@ abstract class BaseEntity
     {
         return $column ? in_array($column, $this->_dirty) : count($this->_dirty) > 0;
     }
+
+    public function clean()
+    {
+        $this->_dirty = [];
+    }
 }
