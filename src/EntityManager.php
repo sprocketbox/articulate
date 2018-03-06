@@ -4,6 +4,8 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Entities\BaseEntity;
+use Ollieread\Articulate\Repositories\EntityRepository;
+use Ollieread\Toolkit\Repositories\BaseRepository;
 
 class EntityManager
 {
@@ -33,6 +35,16 @@ class EntityManager
 
         // Add the entity mapping
         $this->mappings->put($entity, $mapper);
+
+        $repository = $mapper->getRepository();
+
+        // If there's a repository, and it exists
+        if ($repository && class_exists($repository)) {
+            // Map it for the binding
+            app()->bind($repository, function () use($entity): EntityRepository {
+                return $this->repository($entity);
+            });
+        }
     }
 
     public function getMapping(string $entity): ?Mapping
@@ -43,13 +55,11 @@ class EntityManager
     public function repository(string $entity)
     {
         $mapper = $this->getMapping($entity);
-        $repository = $mapper->getRepository();
+        $repository = $mapper->getRepository() ?? EntityRepository::class;
 
         if (class_exists($repository)) {
             return new $repository(app('db'), $this, $mapper);
         }
-
-        // Throw an exception
     }
 
     public function hydrate(string $entityClass, array $attributes = []): ?BaseEntity
