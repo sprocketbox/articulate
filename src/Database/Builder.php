@@ -21,6 +21,11 @@ class Builder extends QueryBuilder
      */
     protected $_entity;
 
+    /**
+     * @var array
+     */
+    protected $with = [];
+
     public function __construct(
         ConnectionInterface $connection,
         Grammar $grammar = null,
@@ -39,7 +44,7 @@ class Builder extends QueryBuilder
         return $this->from($this->_manager->getMapping($entity)->getTable());
     }
 
-    public function get($columns = ['*'])
+    protected function results(array $columns = ['*']): array
     {
         $original = $this->columns;
 
@@ -47,11 +52,24 @@ class Builder extends QueryBuilder
             $this->columns = $columns;
         }
 
-        $results = $this->processor->processSelect($this, $this->runSelect());
-
+        $results       = $this->processor->processSelect($this, $this->runSelect());
         $this->columns = $original;
 
+        return $results;
+    }
+
+    public function get($columns = ['*']): Collection
+    {
+        $results = $this->results($columns);
+
         return $this->hydrateAll($results);
+    }
+
+    public function first(array $columns = ['*'])
+    {
+        $results = $this->results($columns);
+
+        return $this->hydrate(array_shift($results));
     }
 
     public function newEntityInstance()
