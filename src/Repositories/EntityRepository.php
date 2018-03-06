@@ -3,6 +3,7 @@
 namespace Ollieread\Articulate\Repositories;
 
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Support\Collection;
 use Ollieread\Articulate\Contracts\Column;
 use Ollieread\Articulate\Database\Builder;
 use Ollieread\Articulate\Entities\BaseEntity;
@@ -31,6 +32,13 @@ class EntityRepository
      */
     private $_mapper;
 
+    /**
+     * EntityRepository constructor.
+     *
+     * @param \Illuminate\Database\DatabaseManager $database
+     * @param \Ollieread\Articulate\EntityManager  $manager
+     * @param \Ollieread\Articulate\Mapping        $mapper
+     */
     public function __construct(DatabaseManager $database, EntityManager $manager, Mapping $mapper)
     {
         $this->_database = $database;
@@ -39,6 +47,33 @@ class EntityRepository
         $this->_entity   = $mapper->getEntity();
     }
 
+    /**
+     * Magic method handling for dynamic functions such as getByAddress() or getOneById().
+     *
+     * @param       $name
+     * @param array $arguments
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|mixed|null
+     */
+    function __call($name, $arguments = [])
+    {
+        if (count($arguments) > 1) {
+            // TODO: Should probably throw an exception here
+            return null;
+        }
+
+        if (substr($name, 0, 5) == 'getBy') {
+            return $this->getBy(snake_case(substr($name, 5)), $arguments[0]);
+        } elseif (substr($name, 0, 8) == 'getOneBy') {
+            $column = snake_case(substr($name, 8));
+
+            return call_user_func_array([$this->make(), 'where'], [$column, $arguments[0]])->first();
+        }
+    }
+
+    /**
+     * @return \Ollieread\Articulate\Database\Builder
+     */
     protected function query(): Builder
     {
         $connection = $this->_mapper->getConnection();
@@ -51,6 +86,65 @@ class EntityRepository
         return $builder->for($this->_entity);
     }
 
+    /**
+     * Helper method for retrieving models by a column or array of columns.
+     *
+     * @return mixed
+     */
+    public function getBy() : ?Collection
+    {
+        $model = $this->query();
+
+        if (func_num_args() == 2) {
+            list($column, $value) = func_get_args();
+            $method = is_array($value) ? 'whereIn' : 'where';
+            $model = $model->$method($column, $value);
+        } elseif (func_num_args() == 1) {
+            $columns = func_get_arg(0);
+
+            if (is_array($columns)) {
+                foreach ($columns as $column => $value) {
+                    $method = is_array($value) ? 'whereIn' : 'where';
+                    $model = $model->$method($column, $value);
+                }
+            }
+        }
+
+        return $model->get();
+    }
+
+    /**
+     * Helper method for retrieving a model by a column or array of columns.
+     *
+     * @return mixed
+     */
+    public function getOneBy() : ?BaseEntity
+    {
+        $model = $this->query();
+
+        if (func_num_args() == 2) {
+            list($column, $value) = func_get_args();
+            $method = is_array($value) ? 'whereIn' : 'where';
+            $model = $model->$method($column, $value);
+        } elseif (func_num_args() == 1) {
+            $columns = func_get_args();
+
+            if (is_array($columns)) {
+                foreach ($columns as $column => $value) {
+                    $method = is_array($value) ? 'whereIn' : 'where';
+                    $model = $model->$method($column, $value);
+                }
+            }
+        }
+
+        return $model->first();
+    }
+
+    /**
+     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
+     *
+     * @return \Ollieread\Articulate\Entities\BaseEntity
+     */
     public function save(BaseEntity $entity)
     {
         if (get_class($entity) === $this->_entity) {
@@ -77,5 +171,22 @@ class EntityRepository
                 }
             }
         }
+    }
+
+    /**
+     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
+     *
+     * @return int
+     */
+    public function delete(BaseEntity $entity)
+    {
+        if (get_class($entity) === $this->_entity) {
+            $keyName = $this->_mapper->getKey();
+            $keyValue = $entity->get($keyName);
+
+            return $this->query()->delete($keyValue);
+        }
+
+        return 0;
     }
 }
