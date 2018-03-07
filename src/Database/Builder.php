@@ -81,7 +81,7 @@ class Builder extends QueryBuilder
 
     private function hydrate($attributes = [])
     {
-        return $this->_manager->hydrate($this->_entity, $attributes);
+        return $this->_manager->hydrate($this->_entity, (array) $attributes);
     }
 
     private function hydrateAll(array $results)
