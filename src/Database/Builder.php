@@ -65,7 +65,7 @@ class Builder extends QueryBuilder
         return $this->hydrateAll($results);
     }
 
-    public function first(array $columns = ['*'])
+    public function first($columns = ['*'])
     {
         $results = $this->results($columns);
 
