@@ -9,7 +9,8 @@ use Ollieread\Articulate\Relationships\BelongsTo;
 class Mapping
 {
     use Macroable,
-        Concerns\MapsColumns;
+        Concerns\MapsColumns,
+        Concerns\MapsRelationships;
 
     /**
      * @var string

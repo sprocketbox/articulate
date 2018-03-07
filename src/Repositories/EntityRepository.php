@@ -55,7 +55,7 @@ class EntityRepository
      *
      * @return \Illuminate\Database\Eloquent\Collection|mixed|null
      */
-    function __call($name, $arguments = [])
+    public function __call($name, $arguments = [])
     {
         if (count($arguments) > 1) {
             // TODO: Should probably throw an exception here
@@ -87,57 +87,48 @@ class EntityRepository
     }
 
     /**
-     * Helper method for retrieving models by a column or array of columns.
-     *
-     * @return mixed
+     * @return \Ollieread\Articulate\Database\Builder
      */
-    public function getBy() : ?Collection
+    protected function getQuery(): Builder
     {
-        $model = $this->query();
+        $query = $this->query();
 
         if (func_num_args() == 2) {
             list($column, $value) = func_get_args();
             $method = is_array($value) ? 'whereIn' : 'where';
-            $model = $model->$method($column, $value);
-        } elseif (func_num_args() == 1) {
-            $columns = func_get_arg(0);
-
-            if (is_array($columns)) {
-                foreach ($columns as $column => $value) {
-                    $method = is_array($value) ? 'whereIn' : 'where';
-                    $model = $model->$method($column, $value);
-                }
-            }
-        }
-
-        return $model->get();
-    }
-
-    /**
-     * Helper method for retrieving a model by a column or array of columns.
-     *
-     * @return mixed
-     */
-    public function getOneBy() : ?BaseEntity
-    {
-        $model = $this->query();
-
-        if (func_num_args() == 2) {
-            list($column, $value) = func_get_args();
-            $method = is_array($value) ? 'whereIn' : 'where';
-            $model = $model->$method($column, $value);
+            $query  = $query->$method($column, $value);
         } elseif (func_num_args() == 1) {
             $columns = func_get_args();
 
             if (is_array($columns)) {
                 foreach ($columns as $column => $value) {
                     $method = is_array($value) ? 'whereIn' : 'where';
-                    $model = $model->$method($column, $value);
+                    $query  = $query->$method($column, $value);
                 }
             }
         }
 
-        return $model->first();
+        return $query;
+    }
+
+    /**
+     * Helper method for retrieving entities by a column or array of columns.
+     *
+     * @return mixed
+     */
+    public function getBy(): ?Collection
+    {
+        return call_user_func_array([$this, 'getQuery'], func_get_args())->get();
+    }
+
+    /**
+     * Helper method for retrieving an entity by a column or array of columns.
+     *
+     * @return mixed
+     */
+    public function getOneBy(): ?BaseEntity
+    {
+        return call_user_func_array([$this, 'getQuery'], func_get_args())->first();
     }
 
     /**
@@ -148,7 +139,7 @@ class EntityRepository
     public function save(BaseEntity $entity)
     {
         if (get_class($entity) === $this->_entity) {
-            $keyName = $this->_mapper->getKey();
+            $keyName  = $this->_mapper->getKey();
             $keyValue = $entity->get($keyName);
 
             $fields = [];
@@ -181,7 +172,7 @@ class EntityRepository
     public function delete(BaseEntity $entity)
     {
         if (get_class($entity) === $this->_entity) {
-            $keyName = $this->_mapper->getKey();
+            $keyName  = $this->_mapper->getKey();
             $keyValue = $entity->get($keyName);
 
             return $this->query()->delete($keyValue);
