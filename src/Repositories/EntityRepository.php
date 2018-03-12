@@ -5,7 +5,7 @@ namespace Ollieread\Articulate\Repositories;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Contracts\Column;
-use Ollieread\Articulate\Database\Builder;
+use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Entities\BaseEntity;
 use Ollieread\Articulate\EntityManager;
 use Ollieread\Articulate\Mapping;
@@ -35,13 +35,11 @@ class EntityRepository
     /**
      * EntityRepository constructor.
      *
-     * @param \Illuminate\Database\DatabaseManager $database
      * @param \Ollieread\Articulate\EntityManager  $manager
      * @param \Ollieread\Articulate\Mapping        $mapper
      */
-    public function __construct(DatabaseManager $database, EntityManager $manager, Mapping $mapper)
+    public function __construct(EntityManager $manager, Mapping $mapper)
     {
-        $this->_database = $database;
         $this->_manager  = $manager;
         $this->_mapper   = $mapper;
         $this->_entity   = $mapper->getEntity();
@@ -72,22 +70,17 @@ class EntityRepository
     }
 
     /**
-     * @return \Ollieread\Articulate\Database\Builder
+     * @param null|string $entity
+     *
+     * @return \Ollieread\Articulate\Query\Builder
      */
-    protected function query(): Builder
+    protected function query(?string $entity = null): Builder
     {
-        $connection = $this->_mapper->getConnection();
-        $builder    = new Builder(
-            $this->_database->connection($connection),
-            $this->_database->getQueryGrammar(),
-            $this->_database->getPostProcessor(),
-            $this->_manager);
-
-        return $builder->for($this->_entity);
+        return $this->_manager->newQueryBuilder($entity ?? $this->_entity);
     }
 
     /**
-     * @return \Ollieread\Articulate\Database\Builder
+     * @return \Ollieread\Articulate\Query\Builder
      */
     protected function getQuery(): Builder
     {
