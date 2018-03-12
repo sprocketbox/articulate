@@ -83,4 +83,19 @@ class EntityManager
             return $entity;
         }
     }
+
+    public function newQueryBuilder(string $entity) : Builder
+    {
+        $mapping = $this->getMapping($entity);
+        $connection = $mapping->getConnection();
+        $database = app(DatabaseManager::class);
+
+        $builder    = new Builder(
+            $database->connection($connection),
+            $database->getQueryGrammar(),
+            $database->getPostProcessor(),
+            $this);
+
+        return $builder->for($entity);
+    }
 }
