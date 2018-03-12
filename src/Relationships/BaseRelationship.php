@@ -19,11 +19,23 @@ abstract class BaseRelationship
      */
     protected $entityClass;
 
-    public function __construct(string $name, string $relationshipClass, string $entityClass)
+    /**
+     * @var string
+     */
+    protected $foreignKey;
+
+    /**
+     * @var string
+     */
+    protected $localKey;
+
+    public function __construct(string $name, string $relationshipClass, string $entityClass, string $foreignKey, ?string $localKey = 'id')
     {
         $this->name              = $name;
         $this->relationshipClass = $relationshipClass;
         $this->entityClass       = $entityClass;
+        $this->foreignKey        = $foreignKey;
+        $this->localKey          = $localKey;
     }
 
     /**
@@ -49,4 +61,22 @@ abstract class BaseRelationship
     {
         return $this->entityClass;
     }
+
+    /**
+     * @return string
+     */
+    public function getForeignKey(): string
+    {
+        return $this->foreignKey;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocalKey(): string
+    {
+        return $this->localKey;
+    }
+
+    public abstract function load(&$results, array $children = []);
 }

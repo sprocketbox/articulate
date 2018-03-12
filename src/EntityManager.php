@@ -2,10 +2,11 @@
 
 namespace Ollieread\Articulate;
 
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Entities\BaseEntity;
 use Ollieread\Articulate\Repositories\EntityRepository;
-use Ollieread\Toolkit\Repositories\BaseRepository;
 
 class EntityManager
 {
@@ -52,18 +53,19 @@ class EntityManager
         return $this->mappings->get($entity, null);
     }
 
-    public function repository(string $entity)
+    public function repository(string $entity): ?EntityRepository
     {
         $mapper = $this->getMapping($entity);
         $repository = $mapper->getRepository() ?? EntityRepository::class;
 
         if (class_exists($repository)) {
-            return new $repository(app('db'), $this, $mapper);
+            return new $repository($this, $mapper);
         }
     }
 
-    public function hydrate(string $entityClass, array $attributes = []): ?BaseEntity
+    public function hydrate(string $entityClass, $attributes = []): ?BaseEntity
     {
+        $attributes = (array) $attributes;
         $mapper = $this->getMapping($entityClass);
 
         if ($mapper) {
@@ -74,7 +76,16 @@ class EntityManager
 
                 if (method_exists($entity, $setter)) {
                     $column = $mapper->getColumn($key);
-                    $entity->{$setter}($column->cast($value));
+
+                    if ($column) {
+                        $entity->{$setter}($column->cast($value));
+                    } else {
+                        $relationship = $mapper->getRelationship($key);
+
+                        if ($relationship) {
+                            $entity->{$setter}($value);
+                        }
+                    }
                 }
             }
 

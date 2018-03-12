@@ -115,9 +115,4 @@ class Mapping
 
         return $this;
     }
-
-    public function belongsTo(string $entity, string $foreignKey)
-    {
-        $this->relationships->put($entity, new BelongsTo($this->entity, $entity, $foreignKey));
-    }
 }
