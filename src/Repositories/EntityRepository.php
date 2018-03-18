@@ -2,13 +2,12 @@
 
 namespace Ollieread\Articulate\Repositories;
 
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Contracts\Column;
-use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Entities\BaseEntity;
 use Ollieread\Articulate\EntityManager;
 use Ollieread\Articulate\Mapping;
+use Ollieread\Articulate\Query\Builder;
 
 class EntityRepository
 {
@@ -16,11 +15,6 @@ class EntityRepository
      * @var string
      */
     private $_entity;
-
-    /**
-     * @var \Illuminate\Database\DatabaseManager
-     */
-    private $_database;
 
     /**
      * @var \Ollieread\Articulate\EntityManager
@@ -35,14 +29,14 @@ class EntityRepository
     /**
      * EntityRepository constructor.
      *
-     * @param \Ollieread\Articulate\EntityManager  $manager
-     * @param \Ollieread\Articulate\Mapping        $mapper
+     * @param \Ollieread\Articulate\EntityManager $manager
+     * @param \Ollieread\Articulate\Mapping       $mapper
      */
     public function __construct(EntityManager $manager, Mapping $mapper)
     {
-        $this->_manager  = $manager;
-        $this->_mapper   = $mapper;
-        $this->_entity   = $mapper->getEntity();
+        $this->_manager = $manager;
+        $this->_mapper  = $mapper;
+        $this->_entity  = $mapper->getEntity();
     }
 
     /**
@@ -55,24 +49,29 @@ class EntityRepository
      */
     public function __call($name, $arguments = [])
     {
-        if (count($arguments) > 1) {
+        if (\count($arguments) > 1) {
             // TODO: Should probably throw an exception here
             return null;
         }
 
-        if (substr($name, 0, 5) == 'getBy') {
+        if (0 === strpos($name, 'getBy')) {
             return $this->getBy(snake_case(substr($name, 5)), $arguments[0]);
-        } elseif (substr($name, 0, 8) == 'getOneBy') {
+        }
+
+        if (0 === strpos($name, 'getOneBy')) {
             $column = snake_case(substr($name, 8));
 
-            return call_user_func_array([$this->make(), 'where'], [$column, $arguments[0]])->first();
+            return \call_user_func([$this->make(), 'where'], $column, $arguments[0])->first();
         }
+
+        return null;
     }
 
     /**
      * @param null|string $entity
      *
      * @return \Ollieread\Articulate\Query\Builder
+     * @throws \RuntimeException
      */
     protected function query(?string $entity = null): Builder
     {
@@ -81,21 +80,22 @@ class EntityRepository
 
     /**
      * @return \Ollieread\Articulate\Query\Builder
+     * @throws \RuntimeException
      */
     protected function getQuery(): Builder
     {
         $query = $this->query();
 
-        if (func_num_args() == 2) {
-            list($column, $value) = func_get_args();
-            $method = is_array($value) ? 'whereIn' : 'where';
+        if (\func_num_args() === 2) {
+            list($column, $value) = \func_get_args();
+            $method = \is_array($value) ? 'whereIn' : 'where';
             $query  = $query->$method($column, $value);
-        } elseif (func_num_args() == 1) {
-            $columns = func_get_args();
+        } elseif (\func_num_args() === 1) {
+            $columns = \func_get_args();
 
-            if (is_array($columns)) {
+            if (\is_array($columns)) {
                 foreach ($columns as $column => $value) {
-                    $method = is_array($value) ? 'whereIn' : 'where';
+                    $method = \is_array($value) ? 'whereIn' : 'where';
                     $query  = $query->$method($column, $value);
                 }
             }
@@ -111,7 +111,7 @@ class EntityRepository
      */
     public function getBy(): ?Collection
     {
-        return call_user_func_array([$this, 'getQuery'], func_get_args())->get();
+        return \call_user_func_array([$this, 'getQuery'], func_get_args())->get();
     }
 
     /**
@@ -121,17 +121,18 @@ class EntityRepository
      */
     public function getOneBy(): ?BaseEntity
     {
-        return call_user_func_array([$this, 'getQuery'], func_get_args())->first();
+        return \call_user_func_array([$this, 'getQuery'], func_get_args())->first();
     }
 
     /**
      * @param \Ollieread\Articulate\Entities\BaseEntity $entity
      *
      * @return \Ollieread\Articulate\Entities\BaseEntity
+     * @throws \RuntimeException
      */
-    public function save(BaseEntity $entity)
+    public function save(BaseEntity $entity): ?BaseEntity
     {
-        if (get_class($entity) === $this->_entity) {
+        if (\get_class($entity) === $this->_entity) {
             $keyName  = $this->_mapper->getKey();
             $keyValue = $entity->get($keyName);
 
@@ -144,7 +145,7 @@ class EntityRepository
                 }
             });
 
-            if (count($fields)) {
+            if (\count($fields)) {
                 if (empty($keyValue)) {
                     $keyValue = $this->query()->insertGetId($fields);
                     $entity->set($keyName, $keyValue);
@@ -162,9 +163,9 @@ class EntityRepository
      *
      * @return int
      */
-    public function delete(BaseEntity $entity)
+    public function delete(BaseEntity $entity): int
     {
-        if (get_class($entity) === $this->_entity) {
+        if (\get_class($entity) === $this->_entity) {
             $keyName  = $this->_mapper->getKey();
             $keyValue = $entity->get($keyName);
 

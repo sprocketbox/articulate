@@ -32,6 +32,11 @@ trait MapsColumns
         return $type;
     }
 
+    /**
+     * @param string $column
+     *
+     * @return null|\Ollieread\Articulate\Contracts\Column
+     */
     public function getColumn(string $column): ?Column
     {
         return $this->columns->get($column, null);

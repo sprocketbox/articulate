@@ -50,6 +50,8 @@ class JoinClause extends Builder
         );
     }
 
+    /** @noinspection MoreThanThreeArgumentsInspection */
+
     /**
      * Add an "on" clause to the join.
      *
@@ -66,11 +68,12 @@ class JoinClause extends Builder
      * @param  string|null  $operator
      * @param  string|null  $second
      * @param  string  $boolean
+     *
      * @return $this
      *
      * @throws \InvalidArgumentException
      */
-    public function on($first, $operator = null, $second = null, $boolean = 'and')
+    public function on($first, $operator = null, $second = null, $boolean = 'and'): self
     {
         if ($first instanceof Closure) {
             return $this->whereNested($first, $boolean);
@@ -82,13 +85,14 @@ class JoinClause extends Builder
     /**
      * Add an "or on" clause to the join.
      *
-     * @param  \Closure|string  $first
-     * @param  string|null  $operator
-     * @param  string|null  $second
+     * @param  \Closure|string $first
+     * @param  string|null     $operator
+     * @param  string|null     $second
      *
-     * @return \Ollieread\Articulate\Query\JoinClause
+     * @return $this
+     * @throws \InvalidArgumentException
      */
-    public function orOn($first, $operator = null, $second = null)
+    public function orOn($first, $operator = null, $second = null): self
     {
         return $this->on($first, $operator, $second, 'or');
     }
@@ -96,7 +100,7 @@ class JoinClause extends Builder
     /**
      * Get a new instance of the join clause builder.
      *
-     * @return \Ollieread\Articulate\Query\JoinClause
+     * @return static
      */
     public function newQuery()
     {

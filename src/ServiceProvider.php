@@ -18,14 +18,14 @@ class ServiceProvider extends BaseProvider
         }
     }
 
-    private function publishConfig()
+    private function publishConfig(): void
     {
         $this->publishes([
             __DIR__.'/../config/articulate.php' => config_path('articulate.php'),
         ], 'config');
     }
 
-    public function register()
+    public function register(): void
     {
         $this->entities = new EntityManager;
         $this->app->instance(EntityManager::class, $this->entities);
@@ -34,7 +34,7 @@ class ServiceProvider extends BaseProvider
         $this->registerEntities();
     }
 
-    private function registerEntities()
+    private function registerEntities(): void
     {
         $mappings = config('articulate.mappings', []);
 

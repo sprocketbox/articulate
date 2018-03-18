@@ -37,11 +37,6 @@ class Mapping
      */
     protected $repository;
 
-    /**
-     * @var \Illuminate\Support\Collection
-     */
-    protected $relationships;
-
     public function __construct(string $entity, string $connection, string $table, ?string $key = null)
     {
         $this->entity        = $entity;

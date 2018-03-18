@@ -70,7 +70,7 @@ class Builder extends QueryBuilder
      *
      * @return string
      */
-    protected function tableAlias(string $table)
+    protected function tableAlias(string $table): string
     {
         $tableAlias                  = $this->createTableAlias($table);
         $this->_aliases[$tableAlias] = $table;
@@ -78,7 +78,7 @@ class Builder extends QueryBuilder
         return $tableAlias;
     }
 
-    public function createTableAlias(string $table)
+    public function createTableAlias(string $table): string
     {
         $tableParts = explode('_', snake_case($table));
         $tableAlias = '';
@@ -95,7 +95,7 @@ class Builder extends QueryBuilder
      *
      * @return $this
      */
-    public function noHydrate()
+    public function noHydrate(): self
     {
         $this->hydrate = false;
 
@@ -129,7 +129,7 @@ class Builder extends QueryBuilder
      *
      * @return array|null|\Ollieread\Articulate\Entities\BaseEntity
      */
-    private function hydrate($attributes = [])
+    private function hydrate(array $attributes = [])
     {
         return $this->hydrate ? $this->_manager->hydrate($this->_entity, (array) $attributes) : $attributes;
     }
@@ -141,7 +141,7 @@ class Builder extends QueryBuilder
      *
      * @return \Illuminate\Support\Collection
      */
-    private function hydrateAll(Collection $results)
+    private function hydrateAll(Collection $results): Collection
     {
         return $results->map(function ($result) {
             return $this->hydrate($result);
@@ -153,7 +153,7 @@ class Builder extends QueryBuilder
      *
      * @return $this
      */
-    public function with(string ...$relationships)
+    public function with(string ...$relationships): self
     {
         $this->_with = array_merge($this->_with, $relationships);
 
@@ -173,12 +173,13 @@ class Builder extends QueryBuilder
      *
      * @return $this
      */
-    public function for($entity, ?string $alias = null)
+    public function for($entity, ?string $alias = null): self
     {
         $this->_entity = $entity;
-        $table         = $this->_manager->getMapping($entity)->getTable();
+        /** @noinspection NullPointerExceptionInspection */
+        $table = $this->_manager->getMapping($entity)->getTable();
 
-        if (in_array($alias, $this->_aliases)) {
+        if (\in_array($alias, $this->_aliases, true)) {
             $alias = $this->tableAlias($table);
         }
 
@@ -191,12 +192,13 @@ class Builder extends QueryBuilder
      * @param array $columns
      *
      * @return \Illuminate\Support\Collection
+     * @throws \RuntimeException
      */
     protected function results(array $columns = ['*']): Collection
     {
         $original = $this->columns;
 
-        if (is_null($original)) {
+        if (null === $original) {
             $this->columns = $columns;
         }
 
@@ -212,8 +214,10 @@ class Builder extends QueryBuilder
      * Load the relationships, if any were set
      *
      * @param $results
+     *
+     * @throws \RuntimeException
      */
-    protected function processWith(&$results)
+    protected function processWith(&$results): void
     {
         if ($this->_with) {
             $mapper  = $this->_manager->getMapping($this->_entity);
@@ -235,6 +239,7 @@ class Builder extends QueryBuilder
      * @param array $columns
      *
      * @return \Illuminate\Support\Collection
+     * @throws \RuntimeException
      */
     public function get($columns = ['*']): Collection
     {
@@ -249,6 +254,7 @@ class Builder extends QueryBuilder
      * @param array $columns
      *
      * @return array|\Illuminate\Database\Eloquent\Model|null|object|\Ollieread\Articulate\Entities\BaseEntity|static
+     * @throws \RuntimeException
      */
     public function first($columns = ['*'])
     {
@@ -257,6 +263,8 @@ class Builder extends QueryBuilder
 
         return $this->hydrate($first);
     }
+
+    /** @noinspection MoreThanThreeArgumentsInspection */
 
     /**
      * Add a join clause to the query
@@ -271,9 +279,10 @@ class Builder extends QueryBuilder
      * @param string $type
      * @param bool   $where
      *
-     * @return $this
+     * @return \Ollieread\Articulate\Query\Builder
+     * @throws \InvalidArgumentException
      */
-    public function join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false)
+    public function join($table, $first, $operator = null, $second = null, $type = 'inner', $where = false): self
     {
         $mapping = $this->_manager->getMapping($table);
 
@@ -287,7 +296,7 @@ class Builder extends QueryBuilder
         // is trying to build a join with a complex "on" clause containing more than
         // one condition, so we'll add the join and call a Closure with the query.
         if ($first instanceof Closure) {
-            call_user_func($first, $join);
+            $first($join);
             $this->joins[] = $join;
             $this->addBinding($join->getBindings(), 'join');
         }

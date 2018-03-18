@@ -7,6 +7,11 @@ use Ollieread\Articulate\Relationships\BaseRelationship;
 use Ollieread\Articulate\Relationships\BelongsTo;
 use Ollieread\Articulate\Relationships\HasMany;
 
+/**
+ * Trait MapsRelationships
+ *
+ * @package Ollieread\Articulate\Concerns
+ */
 trait MapsRelationships
 {
     /**
@@ -33,17 +38,42 @@ trait MapsRelationships
         return $relationship;
     }
 
+    /**
+     * @param string $relationship
+     *
+     * @return null|\Ollieread\Articulate\Relationships\BaseRelationship
+     */
     public function getRelationship(string $relationship): ?BaseRelationship
     {
         return $this->relationships->get($relationship, null);
     }
 
-    public function mapBelongsTo(string $name, string $relatedEntity, string $foreignKey, ?string $ownerKey = null)
+    /** @noinspection MoreThanThreeArgumentsInspection */
+
+    /**
+     * @param string      $name
+     * @param string      $relatedEntity
+     * @param string      $foreignKey
+     * @param null|string $ownerKey
+     *
+     * @return \Ollieread\Articulate\Relationships\BaseRelationship
+     */
+    public function mapBelongsTo(string $name, string $relatedEntity, string $foreignKey, ?string $ownerKey = null): BaseRelationship
     {
         return $this->mapRelationship(new BelongsTo($name, $relatedEntity, $this->entity, $foreignKey, $ownerKey ?? 'id'));
     }
 
-    public function mapHasMany(string $name, string $relatedEntity, string $foreignKey, ?string $ownerKey = null)
+    /** @noinspection MoreThanThreeArgumentsInspection */
+
+    /**
+     * @param string      $name
+     * @param string      $relatedEntity
+     * @param string      $foreignKey
+     * @param null|string $ownerKey
+     *
+     * @return \Ollieread\Articulate\Relationships\BaseRelationship
+     */
+    public function mapHasMany(string $name, string $relatedEntity, string $foreignKey, ?string $ownerKey = null): BaseRelationship
     {
         return $this->mapRelationship(new HasMany($name, $relatedEntity, $this->entity, $foreignKey, $ownerKey ?? 'id'));
     }

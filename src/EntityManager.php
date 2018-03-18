@@ -4,8 +4,8 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
-use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Entities\BaseEntity;
+use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Repositories\EntityRepository;
 
 class EntityManager
@@ -20,7 +20,12 @@ class EntityManager
         $this->mappings = new Collection;
     }
 
-    public function register(EntityMapping $mapping)
+    /**
+     * @param \Ollieread\Articulate\EntityMapping $mapping
+     *
+     * @throws \RuntimeException
+     */
+    public function register(EntityMapping $mapping): void
     {
         $entity     = $mapping->entity();
         $table      = $mapping->table();
@@ -42,20 +47,36 @@ class EntityManager
         // If there's a repository, and it exists
         if ($repository && class_exists($repository)) {
             // Map it for the binding
-            app()->bind($repository, function () use($entity): EntityRepository {
+            app()->bind($repository, function () use ($entity): EntityRepository {
                 return $this->repository($entity);
             });
         }
     }
 
-    public function getMapping(string $entity): ?Mapping
+    /**
+     * @param string $entity
+     *
+     * @return \Ollieread\Articulate\Mapping
+     * @throws \RuntimeException
+     */
+    public function getMapping(string $entity): Mapping
     {
-        return $this->mappings->get($entity, null);
+        if ($this->mappings->has($entity)) {
+            throw new \RuntimeException('Mapping not found for: ' . $entity);
+        }
+
+        return $this->mappings->get($entity);
     }
 
+    /**
+     * @param string $entity
+     *
+     * @return null|\Ollieread\Articulate\Repositories\EntityRepository
+     * @throws \RuntimeException
+     */
     public function repository(string $entity): ?EntityRepository
     {
-        $mapper = $this->getMapping($entity);
+        $mapper     = $this->getMapping($entity);
         $repository = $mapper->getRepository() ?? EntityRepository::class;
 
         if (class_exists($repository)) {
@@ -63,45 +84,60 @@ class EntityManager
         }
     }
 
+    /** @noinspection ArrayTypeOfParameterByDefaultValueInspection */
+
+    /**
+     * @param string $entityClass
+     * @param array  $attributes
+     *
+     * @return null|\Ollieread\Articulate\Entities\BaseEntity
+     * @throws \RuntimeException
+     */
     public function hydrate(string $entityClass, $attributes = []): ?BaseEntity
     {
         $attributes = (array) $attributes;
-        $mapper = $this->getMapping($entityClass);
+        $mapper     = $this->getMapping($entityClass);
+        /**
+         * @var BaseEntity $entity
+         */
+        $entity = new $entityClass;
 
-        if ($mapper) {
-            $entity = new $entityClass;
+        foreach ($attributes as $key => $value) {
+            $setter = 'set' . studly_case($key);
 
-            foreach ($attributes as $key => $value) {
-                $setter = 'set' . studly_case($key);
+            if (method_exists($entity, $setter)) {
+                $column = $mapper->getColumn($key);
 
-                if (method_exists($entity, $setter)) {
-                    $column = $mapper->getColumn($key);
+                if ($column) {
+                    $entity->{$setter}($column->cast($value));
+                } else {
+                    $relationship = $mapper->getRelationship($key);
 
-                    if ($column) {
-                        $entity->{$setter}($column->cast($value));
-                    } else {
-                        $relationship = $mapper->getRelationship($key);
-
-                        if ($relationship) {
-                            $entity->{$setter}($value);
-                        }
+                    if ($relationship) {
+                        $entity->{$setter}($value);
                     }
                 }
             }
-
-            $entity->clean();
-
-            return $entity;
         }
+
+        $entity->clean();
+
+        return $entity;
     }
 
-    public function newQueryBuilder(string $entity) : Builder
+    /**
+     * @param string $entity
+     *
+     * @return \Ollieread\Articulate\Query\Builder
+     * @throws \RuntimeException
+     */
+    public function newQueryBuilder(string $entity): Builder
     {
-        $mapping = $this->getMapping($entity);
+        $mapping    = $this->getMapping($entity);
         $connection = $mapping->getConnection();
-        $database = app(DatabaseManager::class);
+        $database   = app(DatabaseManager::class);
 
-        $builder    = new Builder(
+        $builder = new Builder(
             $database->connection($connection),
             $database->getQueryGrammar(),
             $database->getPostProcessor(),

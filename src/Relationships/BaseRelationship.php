@@ -2,6 +2,8 @@
 
 namespace Ollieread\Articulate\Relationships;
 
+use Illuminate\Support\Collection;
+
 abstract class BaseRelationship
 {
     /**
@@ -78,5 +80,5 @@ abstract class BaseRelationship
         return $this->localKey;
     }
 
-    public abstract function load(&$results, array $children = []);
+    abstract public function load(Collection $results, array $children = []);
 }
