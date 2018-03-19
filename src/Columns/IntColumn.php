@@ -14,7 +14,7 @@ class IntColumn extends BaseColumn
      *
      * @return int
      */
-    public function cast(string $value): int
+    public function cast($value): int
     {
         return (int) $value;
     }
@@ -24,7 +24,7 @@ class IntColumn extends BaseColumn
      *
      * @return string
      */
-    public function toDatabase($value): string
+    public function toDatabase($value): int
     {
         return (int) $value;
     }

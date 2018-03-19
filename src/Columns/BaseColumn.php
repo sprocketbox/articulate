@@ -11,6 +11,12 @@ use Ollieread\Articulate\Contracts\Column;
  */
 abstract class BaseColumn implements Column
 {
+
+    /**
+     * @var string
+     */
+    protected $attributeName;
+
     /**
      * @var string
      */
@@ -29,11 +35,19 @@ abstract class BaseColumn implements Column
     /**
      * BaseColumn constructor.
      *
-     * @param string $columnName
+     * @param string $attributeName
      */
-    public function __construct(string $columnName)
+    public function __construct(string $attributeName)
     {
-        $this->columnName = $columnName;
+        $this->attributeName = $attributeName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getAttributeName(): string
+    {
+        return $this->attributeName;
     }
 
     /**
@@ -41,15 +55,28 @@ abstract class BaseColumn implements Column
      */
     public function getColumnName(): string
     {
-        return $this->columnName;
+        return $this->columnName ?? $this->attributeName;
+    }
+
+    /**
+     * @param string $columnName
+     *
+     * @return \Ollieread\Articulate\Columns\BaseColumn
+     */
+    public function setColumnName(string $columnName): self
+    {
+        $this->columnName = $columnName;
+
+        return $this;
     }
 
     /**
      *
      */
-    public function setImmutable()
+    public function setImmutable(): self
     {
         $this->immutable = true;
+
         return $this;
     }
 
@@ -64,9 +91,10 @@ abstract class BaseColumn implements Column
     /**
      *
      */
-    public function setDynamic()
+    public function setDynamic(): self
     {
         $this->dynamic = true;
+
         return $this;
     }
 
