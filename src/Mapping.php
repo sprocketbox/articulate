@@ -37,12 +37,11 @@ class Mapping
      */
     protected $repository;
 
-    public function __construct(string $entity, string $connection, string $table, ?string $key = null)
+    public function __construct(string $entity, string $connection, string $table)
     {
         $this->entity        = $entity;
         $this->connection    = $connection;
         $this->table         = $table;
-        $this->key           = $key;
         $this->relationships = new Collection;
         $this->columns       = new Collection;
     }

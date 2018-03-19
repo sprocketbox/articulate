@@ -2,10 +2,8 @@
 
 namespace Ollieread\Articulate;
 
-use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Entities\BaseEntity;
-use Ollieread\Articulate\Query\Builder;
 use Ollieread\Articulate\Repositories\EntityRepository;
 
 class EntityManager
@@ -61,7 +59,7 @@ class EntityManager
      */
     public function getMapping(string $entity): Mapping
     {
-        if ($this->mappings->has($entity)) {
+        if (! $this->mappings->has($entity)) {
             throw new \RuntimeException('Mapping not found for: ' . $entity);
         }
 
@@ -123,26 +121,5 @@ class EntityManager
         $entity->clean();
 
         return $entity;
-    }
-
-    /**
-     * @param string $entity
-     *
-     * @return \Ollieread\Articulate\Query\Builder
-     * @throws \RuntimeException
-     */
-    public function newQueryBuilder(string $entity): Builder
-    {
-        $mapping    = $this->getMapping($entity);
-        $connection = $mapping->getConnection();
-        $database   = app(DatabaseManager::class);
-
-        $builder = new Builder(
-            $database->connection($connection),
-            $database->getQueryGrammar(),
-            $database->getPostProcessor(),
-            $this);
-
-        return $builder->for($entity);
     }
 }

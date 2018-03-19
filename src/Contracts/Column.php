@@ -4,9 +4,13 @@ namespace Ollieread\Articulate\Contracts;
 
 interface Column
 {
-    public function cast(string $value);
+    public function cast($value);
 
     public function getColumnName(): string;
+
+    public function setColumnName(string $name);
+
+    public function getAttributeName(): string;
 
     public function setImmutable();
 
@@ -16,5 +20,5 @@ interface Column
 
     public function isDynamic(): bool;
 
-    public function toDatabase($value): string;
+    public function toDatabase($value);
 }
