@@ -4,13 +4,11 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
-use Ollieread\Articulate\Relationships\BelongsTo;
 
 class Mapping
 {
     use Macroable,
-        Concerns\MapsColumns,
-        Concerns\MapsRelationships;
+        Concerns\MapsColumns;
 
     /**
      * @var string
@@ -42,7 +40,6 @@ class Mapping
         $this->entity        = $entity;
         $this->connection    = $connection;
         $this->table         = $table;
-        $this->relationships = new Collection;
         $this->columns       = new Collection;
     }
 

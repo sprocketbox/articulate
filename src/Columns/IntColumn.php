@@ -22,7 +22,7 @@ class IntColumn extends BaseColumn
     /**
      * @param $value
      *
-     * @return string
+     * @return int
      */
     public function toDatabase($value): int
     {

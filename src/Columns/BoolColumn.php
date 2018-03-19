@@ -5,7 +5,12 @@ namespace Ollieread\Articulate\Columns;
 class BoolColumn extends BaseColumn
 {
 
-    public function cast($value)
+    /**
+     * @param $value
+     *
+     * @return bool
+     */
+    public function cast($value): bool
     {
         return (bool) $value;
     }

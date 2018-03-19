@@ -18,8 +18,9 @@ class DatabaseRepository extends EntityRepository
      * @param array $arguments
      *
      * @return \Illuminate\Database\Eloquent\Collection|mixed|null
+     * @throws \RuntimeException
      */
-    public function __call($name, $arguments = [])
+    public function __call($name, array $arguments = [])
     {
         if (\count($arguments) > 1) {
             // TODO: Should probably throw an exception here
@@ -60,7 +61,7 @@ class DatabaseRepository extends EntityRepository
         $query = $this->query();
 
         if (\func_num_args() === 2) {
-            list($column, $value) = \func_get_args();
+            [$column, $value] = \func_get_args();
             $method = \is_array($value) ? 'whereIn' : 'where';
             $query  = $query->$method($column, $value);
         } elseif (\func_num_args() === 1) {
@@ -81,10 +82,11 @@ class DatabaseRepository extends EntityRepository
      * Helper method for retrieving entities by a column or array of columns.
      *
      * @return mixed
+     * @throws \RuntimeException
      */
     public function getBy(): ?Collection
     {
-        $results = \call_user_func_array([$this, 'getQuery'], func_get_args())->get();
+        $results = \call_user_func_array([$this, 'getQuery'], \func_get_args())->get();
 
         if ($results) {
             return $this->hydrate($results);
@@ -97,10 +99,11 @@ class DatabaseRepository extends EntityRepository
      * Helper method for retrieving an entity by a column or array of columns.
      *
      * @return mixed
+     * @throws \RuntimeException
      */
     public function getOneBy(): ?BaseEntity
     {
-        $results = \call_user_func_array([$this, 'getQuery'], func_get_args())->first();
+        $results = \call_user_func_array([$this, 'getQuery'], \func_get_args())->first();
 
         if ($results) {
             return $this->hydrate($results);
@@ -141,6 +144,8 @@ class DatabaseRepository extends EntityRepository
                 $this->query()->where($keyName, '=', $keyValue)->update($fields);
             }
         }
+
+        return null;
     }
 
     /**
@@ -158,5 +163,15 @@ class DatabaseRepository extends EntityRepository
         }
 
         return 0;
+    }
+
+    /**
+     * @return \Ollieread\Articulate\Entities\BaseEntity
+     */
+    private function make(): BaseEntity
+    {
+        $entityClass = $this->entity();
+
+        return new $entityClass;
     }
 }

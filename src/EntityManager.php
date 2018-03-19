@@ -80,6 +80,8 @@ class EntityManager
         if (class_exists($repository)) {
             return new $repository($this, $mapper);
         }
+
+        return null;
     }
 
     /** @noinspection ArrayTypeOfParameterByDefaultValueInspection */
@@ -108,12 +110,6 @@ class EntityManager
 
                 if ($column) {
                     $entity->{$setter}($column->cast($value));
-                } else {
-                    $relationship = $mapper->getRelationship($key);
-
-                    if ($relationship) {
-                        $entity->{$setter}($value);
-                    }
                 }
             }
         }

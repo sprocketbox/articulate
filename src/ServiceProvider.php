@@ -4,6 +4,11 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\ServiceProvider as BaseProvider;
 
+/**
+ * Class ServiceProvider
+ *
+ * @package Ollieread\Articulate
+ */
 class ServiceProvider extends BaseProvider
 {
     /**
@@ -11,13 +16,19 @@ class ServiceProvider extends BaseProvider
      */
     protected $entities;
 
-    public function boot()
+    /**
+     *
+     */
+    public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             $this->publishConfig();
         }
     }
 
+    /**
+     *
+     */
     private function publishConfig(): void
     {
         $this->publishes([
@@ -25,6 +36,10 @@ class ServiceProvider extends BaseProvider
         ], 'config');
     }
 
+    /**
+     *
+     * @throws \RuntimeException
+     */
     public function register(): void
     {
         $this->entities = new EntityManager;
@@ -34,6 +49,10 @@ class ServiceProvider extends BaseProvider
         $this->registerEntities();
     }
 
+    /**
+     *
+     * @throws \RuntimeException
+     */
     private function registerEntities(): void
     {
         $mappings = config('articulate.mappings', []);

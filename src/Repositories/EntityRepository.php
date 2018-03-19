@@ -6,6 +6,11 @@ use Illuminate\Support\Collection;
 use Ollieread\Articulate\EntityManager;
 use Ollieread\Articulate\Mapping;
 
+/**
+ * Class EntityRepository
+ *
+ * @package Ollieread\Articulate\Repositories
+ */
 abstract class EntityRepository
 {
     /**
@@ -36,23 +41,43 @@ abstract class EntityRepository
         $this->_entity  = $mapping->getEntity();
     }
 
+    /**
+     * @return \Ollieread\Articulate\EntityManager
+     */
     protected function manager(): EntityManager
     {
         return $this->_manager;
     }
 
+    /**
+     * @return \Ollieread\Articulate\Mapping
+     */
     protected function mapping(): Mapping
     {
         return $this->_mapping;
     }
 
+    /**
+     * @return string
+     */
     protected function entity(): string
     {
         return $this->_entity;
     }
 
+    /**
+     * @param null|string $entity
+     *
+     * @return mixed
+     */
     abstract protected function query(?string $entity = null);
 
+    /**
+     * @param $result
+     *
+     * @return null|\Ollieread\Articulate\Entities\BaseEntity|static|\Illuminate\Support\Collection
+     * @throws \RuntimeException
+     */
     protected function hydrate($result)
     {
         if ($result instanceof Collection) {
