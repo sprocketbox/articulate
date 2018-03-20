@@ -7,9 +7,16 @@
 - **Author**: Ollie Read 
 - **Author Homepage**: http://ollieread.com
 
-Articulate is a drop in replacement for Eloquent. It moves away from the ActiveRecord pattern and finds a nice area that sits neatly between basic queries and the EntityMapper pattern.
+Articulate is a domain entity mapper.
 
-Doctrine is a wonderful package, but it's a monolith. This package is designed to bring a level of optimisation and simplicity, with some of the nice features of both worlds.
+## What is Articulate?
+
+Traditional ORMs have a lot of magic, and introduce their own limitations or specific ways of working.
+It doesn't take long before you need to do something that your ORM of choice doesn't do, and you have
+to find a way to perform your given task, within their confines. 
+
+Articulate is an entity mapper package with little to no database knowledge. How exactly you hydrate the
+entities is entirely up to you.
 
 ## Installation
 
@@ -46,6 +53,10 @@ Or you can inject the following manager;
 Entities are basic value key => value stores and represent a row in your database. All entities should extend the following class;
 
     Ollieread\Articulate\Entities\BaseEntity
+    
+Or implement the following contract;
+
+    Ollieread\Articulate\Contracts\Entity
 
 An entity should have a getter and a setter for the columns in the database. 
 
@@ -179,6 +190,8 @@ Class | Description |
 `Ollieread\Articulate\Columns\IntColumn` | Define the column as an integer |
 `Ollieread\Articulate\Columns\StringColumn` | Define the column as a string |
 `Ollieread\Articulate\Columns\TimestampColumn` | Define the column as a timestamp |
+`Ollieread\Articulate\Columns\BoolColumn` | Define the column as a boolean |
+`Ollieread\Articulate\Columns\EntityColumn` | Define the column as another entity (performs hydration) |
 
 You can map columns as dynamic using `setDynamic()`. The will prevent the value from being synced to the database. An example of a dynamic column would be the result of an expression in an SQL query or something generated in the code, that doesn't necessarily have a place in the database.
 
@@ -194,21 +207,44 @@ All user defined repositories should extend the following class;
     
 Within here you may define your own methods as you see fit.
 
-To access an entity specific query builder you will need to call `$this->query()`. The query builder returned is the same as the Laravel query builder, even though it appears as the following class;
+If you wish to use the default laravel query builder, an abstract repository has been provided for you to extend;
 
-    Ollieread\Articulate\Database\Builder
+    Ollieread\Articulate\Repositories\DatabaseRepository
     
-An example repository would be as follows;
+To create a new instance of the query builder for the entities connection, call the following;
 
-    class TestRepository extends EntityRepository
-    {
-        public function all()
-        {
-            return $this->query()->get();
+    $this->query();
+    
+You will need to tell Articulate to hydrate your entities, but that can be done by doing one of the following;
+
+    $this->hydrate($results)
+    
+The above is available within a repository that extends the DatabaseRepository.
+
+    $this->manager()->hydrate(EntityClass, $row);
+
+Call the hydrate method on the EntityManager.
+
+An example method within a repository would be as follows;
+
+    public function getAll(bool $activeOnly = false) {
+        $query = $this->query()
+            ->select(['id', 'name', 'slug', 'created_at', 'updated_at'])
+            ->from($this->mapping()->getTable())
+            ->orderBy('created_at', 'desc');
+
+        if ($activeOnly) {
+            $query->where('active', '=', 1);
         }
+
+        $results = $query->get();
+
+        if ($results) {
+            return $this->hydrate($results);
+        }
+        
+        return new Collection;
     }
-    
-The `all()` method here would return a `Collection` of `Test` entities.
 
 ### Migrations
 
