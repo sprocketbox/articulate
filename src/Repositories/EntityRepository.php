@@ -67,13 +67,6 @@ abstract class EntityRepository implements Contract
     }
 
     /**
-     * @param null|string $entity
-     *
-     * @return mixed
-     */
-    abstract protected function query(?string $entity = null);
-
-    /**
      * @param $result
      *
      * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Illuminate\Support\Collection
