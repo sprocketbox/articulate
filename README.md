@@ -7,16 +7,20 @@
 - **Author**: Ollie Read 
 - **Author Homepage**: http://ollieread.com
 
-Articulate is a domain entity mapper.
-
 ## What is Articulate?
+
+Articulate is an entity mapper package with little to no database knowledge. How exactly you hydrate the
+entities is entirely up to you.
+
+## Why Articulate?
 
 Traditional ORMs have a lot of magic, and introduce their own limitations or specific ways of working.
 It doesn't take long before you need to do something that your ORM of choice doesn't do, and you have
 to find a way to perform your given task, within their confines. 
 
-Articulate is an entity mapper package with little to no database knowledge. How exactly you hydrate the
-entities is entirely up to you.
+Articulates entities would be domain specific and their resemblance to the database is entirely down to
+your own preferences. Structure your data using entities, without the overhead of passing around the 
+entire DBAL.
 
 ## Installation
 
