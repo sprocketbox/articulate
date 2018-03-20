@@ -7,11 +7,6 @@ namespace Ollieread\Articulate\Concerns;
  *
  * @package Ollieread\Articulate\Concerns
  */
-/**
- * Trait HasAttributes
- *
- * @package Ollieread\Articulate\Concerns
- */
 trait HasAttributes
 {
     /**
