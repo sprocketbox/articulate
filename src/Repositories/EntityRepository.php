@@ -3,6 +3,7 @@
 namespace Ollieread\Articulate\Repositories;
 
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Contracts\EntityRepository as Contract;
 use Ollieread\Articulate\EntityManager;
 use Ollieread\Articulate\Mapping;
 
@@ -11,7 +12,7 @@ use Ollieread\Articulate\Mapping;
  *
  * @package Ollieread\Articulate\Repositories
  */
-abstract class EntityRepository
+abstract class EntityRepository implements Contract
 {
     /**
      * @var string
@@ -44,7 +45,7 @@ abstract class EntityRepository
     /**
      * @return \Ollieread\Articulate\EntityManager
      */
-    protected function manager(): EntityManager
+    public function manager(): EntityManager
     {
         return $this->_manager;
     }
@@ -52,7 +53,7 @@ abstract class EntityRepository
     /**
      * @return \Ollieread\Articulate\Mapping
      */
-    protected function mapping(): Mapping
+    public function mapping(): Mapping
     {
         return $this->_mapping;
     }
@@ -60,7 +61,7 @@ abstract class EntityRepository
     /**
      * @return string
      */
-    protected function entity(): string
+    public function entity(): string
     {
         return $this->_entity;
     }
@@ -75,10 +76,10 @@ abstract class EntityRepository
     /**
      * @param $result
      *
-     * @return null|\Ollieread\Articulate\Entities\BaseEntity|static|\Illuminate\Support\Collection
+     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Illuminate\Support\Collection
      * @throws \RuntimeException
      */
-    protected function hydrate($result)
+    public function hydrate($result)
     {
         if ($result instanceof Collection) {
             return $result->map(function ($row) {

@@ -3,6 +3,7 @@
 namespace Ollieread\Articulate;
 
 use Illuminate\Support\ServiceProvider as BaseProvider;
+use Ollieread\Articulate\Contracts\Mapping as MappingContract;
 
 /**
  * Class ServiceProvider
@@ -45,6 +46,11 @@ class ServiceProvider extends BaseProvider
         $this->entities = new EntityManager;
         $this->app->instance(EntityManager::class, $this->entities);
         $this->app->instance('entities', $this->entities);
+
+        $this->app->bind(MappingContract::class, function ($app, array $arguments) {
+            [$entity, $connection, $table] = $arguments;
+            return new Mapping($entity, $connection, $table);
+        });
 
         $this->registerEntities();
     }

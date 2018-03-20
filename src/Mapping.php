@@ -4,8 +4,9 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
+use Ollieread\Articulate\Contracts\Mapping as Contract;
 
-class Mapping
+class Mapping implements Contract
 {
     use Macroable,
         Concerns\MapsColumns;
@@ -78,9 +79,9 @@ class Mapping
     /**
      * @param string $key
      *
-     * @return \Ollieread\Articulate\Mapping
+     * @return self
      */
-    public function setKey(string $key): Mapping
+    public function setKey(string $key): self
     {
         $this->key = $key;
 
@@ -98,9 +99,9 @@ class Mapping
     /**
      * @param string $repository
      *
-     * @return Mapping
+     * @return self
      */
-    public function setRepository(string $repository): Mapping
+    public function setRepository(string $repository): self
     {
         $this->repository = $repository;
 

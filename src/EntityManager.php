@@ -3,8 +3,10 @@
 namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
-use Ollieread\Articulate\Entities\BaseEntity;
-use Ollieread\Articulate\Repositories\EntityRepository;
+use Ollieread\Articulate\Contracts\Entity;
+use Ollieread\Articulate\Contracts\EntityMapping;
+use Ollieread\Articulate\Contracts\EntityRepository;
+use Ollieread\Articulate\Contracts\Mapping;
 
 class EntityManager
 {
@@ -19,7 +21,7 @@ class EntityManager
     }
 
     /**
-     * @param \Ollieread\Articulate\EntityMapping $mapping
+     * @param \Ollieread\Articulate\Contracts\EntityMapping $mapping
      *
      * @throws \RuntimeException
      */
@@ -34,7 +36,7 @@ class EntityManager
         }
 
         // Create mapper
-        $mapper = new Mapping($entity, $connection ?? config('database.default'), $table);
+        $mapper = app()->makeWith(Mapping::class, [$entity, $connection ?? config('database.default'), $table]);
         $mapping->map($mapper);
 
         // Add the entity mapping
@@ -54,7 +56,7 @@ class EntityManager
     /**
      * @param string $entity
      *
-     * @return \Ollieread\Articulate\Mapping
+     * @return \Ollieread\Articulate\Contracts\Mapping
      * @throws \RuntimeException
      */
     public function getMapping(string $entity): Mapping
@@ -69,7 +71,7 @@ class EntityManager
     /**
      * @param string $entity
      *
-     * @return null|\Ollieread\Articulate\Repositories\EntityRepository
+     * @return null|\Ollieread\Articulate\Contracts\EntityRepository
      * @throws \RuntimeException
      */
     public function repository(string $entity): ?EntityRepository
@@ -90,15 +92,15 @@ class EntityManager
      * @param string $entityClass
      * @param array  $attributes
      *
-     * @return null|\Ollieread\Articulate\Entities\BaseEntity
+     * @return null|\Ollieread\Articulate\Contracts\Entity
      * @throws \RuntimeException
      */
-    public function hydrate(string $entityClass, $attributes = []): ?BaseEntity
+    public function hydrate(string $entityClass, $attributes = []): ?Entity
     {
         $attributes = (array) $attributes;
         $mapper     = $this->getMapping($entityClass);
         /**
-         * @var BaseEntity $entity
+         * @var \Ollieread\Articulate\Contracts\Entity $entity
          */
         $entity = new $entityClass;
 
