@@ -2,6 +2,7 @@
 
 namespace Ollieread\Articulate\Repositories;
 
+use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
@@ -47,10 +48,17 @@ class DatabaseRepository extends EntityRepository
      */
     protected function query(?string $entity = null): Builder
     {
-        $connection = $this->mapping()->getConnection();
-        $database   = app(DatabaseManager::class);
+        $database = app(DatabaseManager::class);
 
-        return $database->connection($connection)->query();
+        if ($entity) {
+            $mapping    = ($entity === $this->entity() ? $this->mapping() : $this->manager()->getMapping($entity));
+            $connection = $mapping->getConnection();
+            $table      = $mapping->getTable();
+
+            return $database->connection($connection)->query()->from($table);
+        }
+
+        return $database->connection()->query();
     }
 
     /**
@@ -123,6 +131,7 @@ class DatabaseRepository extends EntityRepository
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();
             $keyValue = $entity->get($keyName);
+            $insert   = empty($keyValue);
 
             $fields = [];
 
@@ -134,14 +143,27 @@ class DatabaseRepository extends EntityRepository
             });
 
             if (\count($fields)) {
-                if (empty($keyValue)) {
+                $now = Carbon::now();
+
+                if ($insert) {
+                    if ($fields['created_at']) {
+                        $fields['created_at'] = $now;
+                    }
+                    if ($fields['updated_at']) {
+                        $fields['updated_at'] = $now;
+                    }
+
                     $keyValue = $this->query()->insertGetId($fields);
                     $entity->set($keyName, $keyValue);
+                } else {
+                    if ($fields['updated_at']) {
+                        $fields['updated_at'] = $now;
+                    }
 
-                    return $entity;
+                    $this->query()->where($keyName, '=', $keyValue)->update($fields);
                 }
 
-                $this->query()->where($keyName, '=', $keyValue)->update($fields);
+                return $entity;
             }
         }
 
