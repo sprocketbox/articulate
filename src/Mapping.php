@@ -4,12 +4,15 @@ namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Traits\Macroable;
+use Ollieread\Articulate\Concerns\MapsColumns;
 use Ollieread\Articulate\Contracts\Mapping as Contract;
 
 class Mapping implements Contract
 {
-    use Macroable,
-        Concerns\MapsColumns;
+    use Concerns\MapsColumns, Macroable {
+        Macroable::__call as macroCall;
+        MapsColumns::__call as columnCall;
+    }
 
     /**
      * @var string
@@ -36,12 +39,28 @@ class Mapping implements Contract
      */
     protected $repository;
 
-    public function __construct(string $entity, string $connection, string $table)
+    public function __construct(string $entity, string $connection, ?string $table = null)
     {
-        $this->entity        = $entity;
-        $this->connection    = $connection;
-        $this->table         = $table;
-        $this->columns       = new Collection;
+        $this->entity     = $entity;
+        $this->connection = $connection;
+        $this->table      = $table;
+        $this->columns    = new Collection;
+    }
+
+    /**
+     * @param $name
+     * @param $arguments
+     *
+     * @return mixed|\Ollieread\Articulate\Contracts\Column
+     * @throws \ReflectionException
+     */
+    public function __call($name, $arguments)
+    {
+        if (self::hasMacro($name)) {
+            return $this->macroCall($name, $arguments);
+        }
+
+        return $this->columnCall($name, $arguments);
     }
 
     /**
@@ -91,7 +110,7 @@ class Mapping implements Contract
     /**
      * @return string
      */
-    public function getRepository(): string
+    public function getRepository(): ?string
     {
         return $this->repository;
     }
