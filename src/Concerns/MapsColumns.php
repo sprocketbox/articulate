@@ -3,8 +3,22 @@
 namespace Ollieread\Articulate\Concerns;
 
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Columns;
 use Ollieread\Articulate\Contracts\Column;
+use RuntimeException;
 
+/**
+ * Trait MapsColumns
+ *
+ * @method Columns\BoolColumn mapBool(string $attributeName)
+ * @method Columns\EntityColumn mapEntity(string $attributeName, string $entityClass, bool $multiple = false)
+ * @method Columns\IntColumn mapInt(string $attributeName)
+ * @method Columns\JsonColumn mapJson(string $attributeName)
+ * @method Columns\StringColumn mapString(string $attributeName)
+ * @method Columns\TimestampColumn mapTimestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
+ *
+ * @package Ollieread\Articulate\Concerns
+ */
 trait MapsColumns
 {
 
@@ -12,6 +26,28 @@ trait MapsColumns
      * @var \Illuminate\Support\Collection
      */
     protected $columns;
+
+    /**
+     * @param $name
+     * @param $arguments
+     *
+     * @return \Ollieread\Articulate\Contracts\Column
+     * @throws \RuntimeException
+     * @throws \ReflectionException
+     */
+    public function __call($name, $arguments)
+    {
+        if (strpos($name, 'map') === 0) {
+            $column = snake_case(substr($name, 3));
+            $columnClass = config('articulate.columns.'.$column, null);
+
+            if ($columnClass && class_exists($columnClass)) {
+                return $this->newColumn(config('articulate.columns.' . $column), $arguments);
+            }
+        }
+
+        throw new RuntimeException('Invalid column');
+    }
 
     /**
      * @return \Illuminate\Support\Collection
@@ -29,6 +65,7 @@ trait MapsColumns
     public function mapColumn(Column $type): Column
     {
         $this->columns->put($type->getColumnName(), $type);
+
         return $type;
     }
 
@@ -40,5 +77,18 @@ trait MapsColumns
     public function getColumn(string $column): ?Column
     {
         return $this->columns->get($column, null);
+    }
+
+    /**
+     * @param string $columnClass
+     * @param        $arguments
+     *
+     * @return \Ollieread\Articulate\Contracts\Column
+     * @throws \ReflectionException
+     */
+    protected function newColumn(string $columnClass, $arguments)
+    {
+        /** @noinspection PhpParamsInspection */
+        return $this->mapColumn((new \ReflectionClass($columnClass))->newInstanceArgs($arguments));
     }
 }
