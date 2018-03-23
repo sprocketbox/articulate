@@ -2,7 +2,9 @@
 
 namespace Ollieread\Articulate;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as BaseProvider;
+use Ollieread\Articulate\Auth\ArticulateUserProvider;
 use Ollieread\Articulate\Contracts\Mapping as MappingContract;
 
 /**
@@ -24,6 +26,10 @@ class ServiceProvider extends BaseProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishConfig();
+        }
+
+        if (config('articulate.auth') === true) {
+            $this->registerAuth();
         }
     }
 
@@ -66,5 +72,12 @@ class ServiceProvider extends BaseProvider
         foreach ($mappings as $mapping) {
             $this->entities->register(new $mapping);
         }
+    }
+
+    private function registerAuth()
+    {
+        Auth::provider('articulate', function ($app, array $config) {
+            return new ArticulateUserProvider($app['hash'], $this->entities->repository($config['entity']), $config['entity']);
+        });
     }
 }
