@@ -3,10 +3,12 @@
 namespace Ollieread\Articulate;
 
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Contracts\Column;
 use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\Contracts\EntityMapping;
 use Ollieread\Articulate\Contracts\EntityRepository;
 use Ollieread\Articulate\Contracts\Mapping;
+use Ollieread\Articulate\Repositories\EntityRepository as BaseRepository;
 
 class EntityManager
 {
@@ -77,7 +79,7 @@ class EntityManager
     public function repository(string $entity): ?EntityRepository
     {
         $mapper     = $this->getMapping($entity);
-        $repository = $mapper->getRepository() ?? EntityRepository::class;
+        $repository = $mapper->getRepository() ?? BaseRepository::class;
 
         if (class_exists($repository)) {
             return new $repository($this, $mapper);
@@ -97,12 +99,29 @@ class EntityManager
      */
     public function hydrate(string $entityClass, $attributes = []): ?Entity
     {
-        $attributes = (array) $attributes;
+        if ($attributes instanceof Entity) {
+            dd(debug_backtrace());
+            throw new \RuntimeException('Can\'t hydrate an entity from an entity');
+        }
+
+        if (empty($attributes)) {
+            throw new \RuntimeException('No attributes provided for entity hydration');
+        }
+
+        if ($attributes instanceof Collection) {
+            throw new \RuntimeException('Can\'t hydrate a collection');
+        }
+
+        //$attributes = (array) $attributes;
         $mapper     = $this->getMapping($entityClass);
         /**
          * @var \Ollieread\Articulate\Contracts\Entity $entity
          */
         $entity = new $entityClass;
+
+        $attributes = $mapper->getColumns()->map(function (Column $column) {
+            return $column->getDefault();
+        })->merge($attributes);
 
         foreach ($attributes as $key => $value) {
             $setter = 'set' . studly_case($key);
@@ -111,8 +130,10 @@ class EntityManager
                 $column = $mapper->getColumn($key);
 
                 if ($column) {
-                    $entity->{$setter}($column->cast($value));
+                    $value = $column->cast($value);
                 }
+
+                $entity->{$setter}($value);
             }
         }
 

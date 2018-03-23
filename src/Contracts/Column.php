@@ -21,4 +21,8 @@ interface Column
     public function isDynamic(): bool;
 
     public function toDatabase($value);
+
+    public function getDefault();
+
+    public function setDefault($default);
 }
