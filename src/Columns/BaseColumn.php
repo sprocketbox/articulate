@@ -33,6 +33,11 @@ abstract class BaseColumn implements Column
     protected $dynamic = false;
 
     /**
+     * @var mixed
+     */
+    protected $default;
+
+    /**
      * BaseColumn constructor.
      *
      * @param string $attributeName
@@ -104,5 +109,25 @@ abstract class BaseColumn implements Column
     public function isDynamic(): bool
     {
         return $this->dynamic;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDefault()
+    {
+        return $this->default;
+    }
+
+    /**
+     * @param mixed $default
+     *
+     * @return BaseColumn
+     */
+    public function setDefault($default): self
+    {
+        $this->default = $default;
+
+        return $this;
     }
 }
