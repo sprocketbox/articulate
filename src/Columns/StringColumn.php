@@ -14,7 +14,7 @@ class StringColumn extends BaseColumn
      *
      * @return string
      */
-    public function cast($value): string
+    public function cast($value): ?string
     {
         return $value;
     }

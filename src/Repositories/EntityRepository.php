@@ -67,19 +67,22 @@ abstract class EntityRepository implements Contract
     }
 
     /**
-     * @param $result
+     * @param             $result
+     *
+     * @param null|string $entity
      *
      * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Illuminate\Support\Collection
-     * @throws \RuntimeException
      */
-    public function hydrate($result)
+    public function hydrate($result ,?string $entity = null)
     {
+        $entity  = $entity ?? $this->entity();
+
         if ($result instanceof Collection) {
-            return $result->map(function ($row) {
-                return $this->manager()->hydrate($this->entity(), $row);
+            return $result->map(function ($row) use($entity) {
+                return $this->hydrate($row, $entity);
             });
         }
 
-        return $this->manager()->hydrate($this->entity(), $result);
+        return $this->manager()->hydrate($entity, $result);
     }
 }

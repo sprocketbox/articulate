@@ -10,7 +10,7 @@ interface EntityMapping
 
     public function connection(): string;
 
-    public function table(): string;
+    public function table(): ?string;
 
     public function map(Mapping $mapper);
 }

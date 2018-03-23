@@ -34,9 +34,9 @@ interface Mapping
     public function setKey(string $key);
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getRepository(): string;
+    public function getRepository(): ?string;
 
     /**
      * @param string $repository

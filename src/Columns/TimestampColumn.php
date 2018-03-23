@@ -36,7 +36,7 @@ class TimestampColumn extends BaseColumn
      */
     public function cast($value): Carbon
     {
-        return Carbon::createFromFormat($this->format, $value);
+        return $value ? Carbon::createFromFormat($this->format, $value) : null;
     }
 
     /**
@@ -44,11 +44,11 @@ class TimestampColumn extends BaseColumn
      *
      * @return string
      */
-    public function toDatabase($value): string
+    public function toDatabase($value): ?string
     {
         /**
          * @var \Carbon\Carbon $value
          */
-        return $value->format($this->format);
+        return $value ? $value->format($this->format) : $this->getDefault();
     }
 }
