@@ -45,7 +45,7 @@ class EntityColumn extends BaseColumn
      */
     public function cast($value)
     {
-        if (! $value) {
+        if (! $value || $value instanceof $this->entityClass) {
             return $value;
         }
 

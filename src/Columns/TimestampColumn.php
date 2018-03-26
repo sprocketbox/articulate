@@ -34,7 +34,7 @@ class TimestampColumn extends BaseColumn
      * @return \Carbon\Carbon
      * @throws \InvalidArgumentException
      */
-    public function cast($value): Carbon
+    public function cast($value): ?Carbon
     {
         return $value ? Carbon::createFromFormat($this->format, $value) : null;
     }

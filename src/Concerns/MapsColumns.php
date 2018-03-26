@@ -33,7 +33,6 @@ trait MapsColumns
      *
      * @return \Ollieread\Articulate\Contracts\Column
      * @throws \RuntimeException
-     * @throws \ReflectionException
      */
     public function __call($name, $arguments)
     {
@@ -84,11 +83,15 @@ trait MapsColumns
      * @param        $arguments
      *
      * @return \Ollieread\Articulate\Contracts\Column
-     * @throws \ReflectionException
+     * @throws \InvalidArgumentException
      */
-    protected function newColumn(string $columnClass, $arguments)
+    protected function newColumn(string $columnClass, $arguments): Column
     {
-        /** @noinspection PhpParamsInspection */
-        return $this->mapColumn((new \ReflectionClass($columnClass))->newInstanceArgs($arguments));
+        try {
+            /** @noinspection PhpParamsInspection */
+            return $this->mapColumn((new \ReflectionClass($columnClass))->newInstanceArgs($arguments));
+        } catch(\ReflectionException $e) {
+            throw new \InvalidArgumentException('Invalid column type', 0, $e);
+        }
     }
 }

@@ -74,7 +74,7 @@ class ServiceProvider extends BaseProvider
         }
     }
 
-    private function registerAuth()
+    private function registerAuth(): void
     {
         Auth::provider('articulate', function ($app, array $config) {
             return new ArticulateUserProvider($app['hash'], $this->entities->repository($config['entity']), $config['entity']);

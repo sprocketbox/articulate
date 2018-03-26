@@ -3,12 +3,21 @@
 namespace Ollieread\Articulate\Repositories;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Query\Expression;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Contracts\Column;
 use Ollieread\Articulate\Entities\BaseEntity;
 
+/**
+ * Class DatabaseRepository
+ *
+ * @package Ollieread\Articulate\Repositories
+ */
 class DatabaseRepository extends EntityRepository
 {
 
@@ -33,9 +42,7 @@ class DatabaseRepository extends EntityRepository
         }
 
         if (0 === strpos($name, 'getOneBy')) {
-            $column = snake_case(substr($name, 8));
-
-            return \call_user_func([$this->make(), 'where'], $column, $arguments[0])->first();
+            return $this->getOneBy(snake_case(substr($name, 5)), $arguments[0]);
         }
 
         return null;
@@ -49,6 +56,8 @@ class DatabaseRepository extends EntityRepository
     protected function query(?string $entity = null): Builder
     {
         $database = app(DatabaseManager::class);
+
+        $entity = $entity ?? $this->entity();
 
         if ($entity) {
             $mapping    = ($entity === $this->entity() ? $this->mapping() : $this->manager()->getMapping($entity));
@@ -66,19 +75,19 @@ class DatabaseRepository extends EntityRepository
      */
     protected function getQuery(): Builder
     {
-        $query = $this->query();
+        $query = $this->query($this->entity());
 
         if (\func_num_args() === 2) {
             [$column, $value] = \func_get_args();
             $method = \is_array($value) ? 'whereIn' : 'where';
-            $query  = $query->$method($column, $value);
+            $query  = $value instanceof Expression ? $query->$method($value) : $query->$method($column, $value);
         } elseif (\func_num_args() === 1) {
-            $columns = \func_get_args();
+            $columns = \func_get_arg(0);
 
             if (\is_array($columns)) {
                 foreach ($columns as $column => $value) {
                     $method = \is_array($value) ? 'whereIn' : 'where';
-                    $query  = $query->$method($column, $value);
+                    $query  = $value instanceof Expression ? $query->$method($value) : $query->$method($column, $value);
                 }
             }
         }
@@ -121,6 +130,31 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param int                                $count
+     * @param string                             $pageName
+     *
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    protected function paginate(Builder $query, int $count, string $pageName = 'page'): LengthAwarePaginatorContract
+    {
+        $total     = $query->getCountForPagination();
+        $paginator = null;
+
+        $page    = Paginator::resolveCurrentPage($pageName);
+        $results = $query->forPage($page)->get();
+
+        if ($results) {
+            $results = $this->hydrate($results);
+        }
+
+        return new LengthAwarePaginator($results, $total, $count, $page, [
+            'path'     => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+    }
+
+    /**
      * @param \Ollieread\Articulate\Entities\BaseEntity $entity
      *
      * @return \Ollieread\Articulate\Entities\BaseEntity
@@ -131,14 +165,14 @@ class DatabaseRepository extends EntityRepository
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();
             $keyValue = $entity->get($keyName);
-            $insert   = empty($keyValue);
+            $insert   = ! $entity->isPersisted();
 
             $fields = [];
 
             $columns = $this->mapping()->getColumns();
             $columns->each(function (Column $column, string $name) use ($entity, &$fields) {
                 if (! $column->isImmutable() && ! $column->isDynamic() && $entity->isDirty($name)) {
-                    $fields[$name] = $column->toDatabase($entity->get($name));
+                    $fields[$column->getColumnName()] = $column->toDatabase($entity->get($name));
                 }
             });
 
@@ -146,21 +180,26 @@ class DatabaseRepository extends EntityRepository
                 $now = Carbon::now();
 
                 if ($insert) {
-                    if ($fields['created_at']) {
+                    if (! isset($fields['created_at']) && $columns->has('created_at')) {
                         $fields['created_at'] = $now;
                     }
-                    if ($fields['updated_at']) {
+                    if (! isset($fields['updated_at']) && $columns->has('updated_at')) {
                         $fields['updated_at'] = $now;
                     }
 
-                    $keyValue = $this->query()->insertGetId($fields);
-                    $entity->set($keyName, $keyValue);
+                    $newKeyValue = $this->query($this->entity())->insertGetId($fields);
+
+                    if (empty($keyValue) && !empty($newKeyValue)) {
+                        $entity->set($keyName, $newKeyValue);
+                    }
+
+                    $entity->setPersisted();
                 } else {
-                    if ($fields['updated_at']) {
+                    if ($columns->has('updated_at')) {
                         $fields['updated_at'] = $now;
                     }
 
-                    $this->query()->where($keyName, '=', $keyValue)->update($fields);
+                    $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);
                 }
 
                 return $entity;
@@ -185,15 +224,5 @@ class DatabaseRepository extends EntityRepository
         }
 
         return 0;
-    }
-
-    /**
-     * @return \Ollieread\Articulate\Entities\BaseEntity
-     */
-    private function make(): BaseEntity
-    {
-        $entityClass = $this->entity();
-
-        return new $entityClass;
     }
 }

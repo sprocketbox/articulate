@@ -2,8 +2,6 @@
 
 namespace Ollieread\Articulate\Contracts;
 
-use Ollieread\Articulate\Mapping;
-
 interface EntityMapping
 {
     public function entity(): string;

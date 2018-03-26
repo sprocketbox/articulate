@@ -3,7 +3,20 @@
 namespace Ollieread\Articulate\Contracts;
 
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Columns;
 
+/**
+ * Interface Mapping
+ *
+ * @method Columns\BoolColumn mapBool(string $attributeName)
+ * @method Columns\EntityColumn mapEntity(string $attributeName, string $entityClass, bool $multiple = false)
+ * @method Columns\IntColumn mapInt(string $attributeName)
+ * @method Columns\JsonColumn mapJson(string $attributeName)
+ * @method Columns\StringColumn mapString(string $attributeName)
+ * @method Columns\TimestampColumn mapTimestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
+ *
+ * @package Ollieread\Articulate\Contracts
+ */
 interface Mapping
 {
     /**

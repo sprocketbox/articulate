@@ -28,4 +28,15 @@ interface Entity
      *
      */
     public function clean(): void;
+
+    public function isPersisted(): bool;
+
+    public function setPersisted();
+
+    /**
+     * @param \Ollieread\Articulate\Contracts\Entity $entity
+     *
+     * @return void
+     */
+    public static function hydrated($entity): void;
 }

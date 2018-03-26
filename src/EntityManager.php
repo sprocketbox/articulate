@@ -25,6 +25,7 @@ class EntityManager
     /**
      * @param \Ollieread\Articulate\Contracts\EntityMapping $mapping
      *
+     * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
     public function register(EntityMapping $mapping): void
@@ -59,12 +60,12 @@ class EntityManager
      * @param string $entity
      *
      * @return \Ollieread\Articulate\Contracts\Mapping
-     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
     public function getMapping(string $entity): Mapping
     {
         if (! $this->mappings->has($entity)) {
-            throw new \RuntimeException('Mapping not found for: ' . $entity);
+            throw new \InvalidArgumentException('Mapping not found for: ' . $entity);
         }
 
         return $this->mappings->get($entity);
@@ -74,7 +75,7 @@ class EntityManager
      * @param string $entity
      *
      * @return null|\Ollieread\Articulate\Contracts\EntityRepository
-     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
      */
     public function repository(string $entity): ?EntityRepository
     {
@@ -94,50 +95,69 @@ class EntityManager
      * @param string $entityClass
      * @param array  $attributes
      *
-     * @return null|\Ollieread\Articulate\Contracts\Entity
-     * @throws \RuntimeException
+     * @param bool   $persisted
+     *
+     * @return \Ollieread\Articulate\Contracts\Entity
+     * @throws \InvalidArgumentException
      */
-    public function hydrate(string $entityClass, $attributes = []): ?Entity
+    public function hydrate(string $entityClass, $attributes = [], bool $persisted = true): Entity
     {
         if ($attributes instanceof Entity) {
-            dd(debug_backtrace());
-            throw new \RuntimeException('Can\'t hydrate an entity from an entity');
+            throw new \InvalidArgumentException('Entity is already hydrated');
         }
 
         if (empty($attributes)) {
-            throw new \RuntimeException('No attributes provided for entity hydration');
+            throw new \InvalidArgumentException('No attributes provided for entity hydration');
         }
 
         if ($attributes instanceof Collection) {
-            throw new \RuntimeException('Can\'t hydrate a collection');
+            throw new \InvalidArgumentException('Collections cannot be hydrated');
         }
 
-        //$attributes = (array) $attributes;
-        $mapper     = $this->getMapping($entityClass);
+        if (! class_exists($entityClass)) {
+            throw new \InvalidArgumentException('Invalid entity class provided');
+        }
+
+        $mapping     = $this->getMapping($entityClass);
         /**
          * @var \Ollieread\Articulate\Contracts\Entity $entity
          */
         $entity = new $entityClass;
 
-        $attributes = $mapper->getColumns()->map(function (Column $column) {
+        // Populate any default attributes if needed
+        // We aren't using toArray() because some of the default values may be Arrayable
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
+        $attributes = $mapping->getColumns()->map(function (Column $column) {
             return $column->getDefault();
         })->merge($attributes);
 
+        /** @noinspection ForeachSourceInspection */
         foreach ($attributes as $key => $value) {
             $setter = 'set' . studly_case($key);
+            $column = $mapping->getColumn($key);
+
+            if ($column) {
+                // If a column mapping exists, we wan't to cast it
+                $value = $column->cast($value);
+            }
 
             if (method_exists($entity, $setter)) {
-                $column = $mapper->getColumn($key);
-
-                if ($column) {
-                    $value = $column->cast($value);
-                }
-
+                // If a specific setter exists, we'll call that
                 $entity->{$setter}($value);
+            } else {
+                // If we don't have a setter, we set the attribute anyway
+                $entity->set($key, $value);
             }
         }
 
+        // We call the hydrated method as a sort of event, sometimes dynamic properties will be set here
+        $entity::hydrated($entity);
+        // Now that we're all done, we'll clean so that the entity doesn't appear to be dirty
         $entity->clean();
+
+        if ($persisted) {
+            $entity->setPersisted();
+        }
 
         return $entity;
     }

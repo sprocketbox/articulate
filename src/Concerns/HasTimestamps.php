@@ -6,7 +6,7 @@ use Carbon\Carbon;
 
 trait HasTimestamps
 {
-    public function getCreatedAt(): Carbon
+    public function getCreatedAt(): ?Carbon
     {
         return $this->get('created_at');
     }
@@ -18,7 +18,7 @@ trait HasTimestamps
         return $this;
     }
 
-    public function getUpdatedAt(): Carbon
+    public function getUpdatedAt(): ?Carbon
     {
         return $this->get('created_at');
     }

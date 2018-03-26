@@ -41,7 +41,7 @@ class ArticulateUserProvider implements UserProvider
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
-    public function retrieveById($identifier)
+    public function retrieveById($identifier): ?Authenticatable
     {
         return $this->repository->retrieveById($identifier);
     }
@@ -54,7 +54,7 @@ class ArticulateUserProvider implements UserProvider
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
-    public function retrieveByToken($identifier, $token)
+    public function retrieveByToken($identifier, $token): ?Authenticatable
     {
         return $this->repository->retrieveByToken($identifier, $token);
     }
@@ -67,7 +67,7 @@ class ArticulateUserProvider implements UserProvider
      *
      * @return void
      */
-    public function updateRememberToken(Authenticatable $user, $token)
+    public function updateRememberToken(Authenticatable $user, $token): void
     {
         $this->repository->updateRememberToken($user, $token);
     }
@@ -79,7 +79,7 @@ class ArticulateUserProvider implements UserProvider
      *
      * @return \Illuminate\Contracts\Auth\Authenticatable|null
      */
-    public function retrieveByCredentials(array $credentials)
+    public function retrieveByCredentials(array $credentials): ?Authenticatable
     {
         return $this->repository->retrieveByCredentials($credentials);
     }
@@ -92,7 +92,7 @@ class ArticulateUserProvider implements UserProvider
      *
      * @return bool
      */
-    public function validateCredentials(Authenticatable $user, array $credentials)
+    public function validateCredentials(Authenticatable $user, array $credentials): ?bool
     {
         return $this->hasher->check(
             $credentials['password'], $user->getAuthPassword()
