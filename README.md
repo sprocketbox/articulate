@@ -9,8 +9,7 @@
 
 ## What is Articulate?
 
-Articulate is an entity mapper package with little to no database knowledge. How exactly you hydrate the
-entities is entirely up to you.
+Articulate is a data source agnostic entity mapper.
 
 ## Why Articulate?
 
@@ -36,21 +35,40 @@ Next you'll want to publish the configuration.
 
 The configuration file will be located at `config/articulate.php`.
 
-It has a single config option, and that is `articulate.mappings`. This is an array of all mappings. For example;
+There are three config options;
+
+### articulate.mappings 
+
+This is an array of all mappings. For example;
 
     'mappings' => [
         \App\Mappings\TestMapping::class,
     ],
     
+### articulate.columns
+
+This is an array of columns. The default column definitions are already in there. For example;
+
+    'columns' => [
+        'bool'      => \Ollieread\Articulate\Columns\BoolColumn::class,
+        'entity'    => \Ollieread\Articulate\Columns\EntityColumn::class,
+        'int'       => \Ollieread\Articulate\Columns\IntColumn::class,
+        'json'      => \Ollieread\Articulate\Columns\JsonColumn::class,
+        'string'    => \Ollieread\Articulate\Columns\StringColumn::class,
+        'timestamp' => \Ollieread\Articulate\Columns\TimestampColumn::class,
+    ],
+    
+### articulate.auth
+
+A simple `true` or `false` telling Articulate to register the auth provider.
+    
 ## Usage
 
-You can use the entity manager by using the following facade;
-
-    Ollieread\Articulate\Facades\EntityManager
-    
-Or you can inject the following manager;
+You can use the entity manager by injecting the following class;
 
     Ollieread\Articulate\EntityManager
+    
+There is no facade for this class, as I do not like facades.
 
 ### Entities
 
@@ -105,8 +123,8 @@ The BaseEntity class also contains a `__get(string $attribute)` implementation s
      * @property-read int                        $id
      * @property-read string                     $name
      * @property-read string                     $description
-     * @property-read \Illuminate\Support\Carbon $created_at
-     * @property-read \Illuminate\Support\Carbon $updated_at
+     * @property-read \Illuminate\Support\Carbon $createdAt
+     * @property-read \Illuminate\Support\Carbon $updatedAt
      *
      * @package App\Entities
      */
@@ -179,6 +197,12 @@ An example implementation would be as follows;
         $mapper->mapColumn(new TimestampColumn('updated_at'));
     }
     
+It should be noted that you can map columns using helper methods. The helper method is always `map{type}(..)` where `{type}` is the key
+used in the `articulate.columns` config mapping, in studly caps. For example;
+
+    $mapper->mapString('name');
+    $mapper->mapTimestamp('created_at', 'Y-m-d H:i:s');
+    
 #### Column Mapping
 
 Column mapping is used so that the builder hydration knows which columns belong to which entity, as well as allowing database returns to be cast to the correct value.
@@ -195,11 +219,14 @@ Class | Description |
 `Ollieread\Articulate\Columns\StringColumn` | Define the column as a string |
 `Ollieread\Articulate\Columns\TimestampColumn` | Define the column as a timestamp |
 `Ollieread\Articulate\Columns\BoolColumn` | Define the column as a boolean |
+`Ollieread\Articulate\Columns\JsonColumn` | Define the column as a json string |
 `Ollieread\Articulate\Columns\EntityColumn` | Define the column as another entity (performs hydration) |
 
 You can map columns as dynamic using `setDynamic()`. The will prevent the value from being synced to the database. An example of a dynamic column would be the result of an expression in an SQL query or something generated in the code, that doesn't necessarily have a place in the database.
 
 You can also map columns as being immutable using `setImmutable()`. Immutable columns can only be set during the initial hydrating of the entity, and like the dynamic, are ignored when it comes to syncing with the database.
+
+All columns also have the option to provide a default value using `setDefault($default)`.
 
 ### Repositories
 
@@ -211,21 +238,27 @@ All user defined repositories should extend the following class;
     
 Within here you may define your own methods as you see fit.
 
+#### Laravel Query Builder
+
 If you wish to use the default laravel query builder, an abstract repository has been provided for you to extend;
 
     Ollieread\Articulate\Repositories\DatabaseRepository
     
 To create a new instance of the query builder for the entities connection, call the following;
 
-    $this->query();
+    $this->query(?string $entityClass);
+
+If you omit the `$entityClass` argument, the entity for the repository will be used.
     
 You will need to tell Articulate to hydrate your entities, but that can be done by doing one of the following;
 
-    $this->hydrate($results)
+    $this->hydrate($results, ?string $entityClass);
+
+If you omit the `$entityClass` argument, the entity for the repository will be used.
     
 The above is available within a repository that extends the DatabaseRepository.
 
-    $this->manager()->hydrate(EntityClass, $row);
+    $this->manager()->hydrate(string $entityClass, $row, $persisted = true);
 
 Call the hydrate method on the EntityManager.
 
@@ -250,7 +283,50 @@ An example method within a repository would be as follows;
         return new Collection;
     }
 
+##### Persisting  
+
+If you have an entity that you have manually populated, you can persist it to the database by using the following;
+
+    $entityRepository->save($entity);
+    
+The repository being used, must be the repository for that specific entity.
+
+##### Pagination    
+
+If you wish to use pagination, there is a helper method available;
+
+    $this->paginate(Builder $query, int $count, string $pageName = 'page')
+    
+This will return an instance of;
+
+    Illuminate\Contracts\Pagination\LengthAwarePaginator
+    
+The initial argument for this method should be the query you wish to run pagination on. An example follows;
+
+    public function getPaginated(int $count, array $filters = []): LengthAwarePaginator {
+        $query = $this->query($this->entity())->orderBy('post_at', 'desc');
+        $this->processFilters($query, $filters);
+
+        return $this->paginate($query, $count);
+    }
+
 ### Migrations
 
 Migrations are exactly the same, this package doesn't add anything specific regarding that.
+
+### Authentication
+
+If you wish to use Articulate for authentication you'll need to set the `articulate.auth` config option to true. 
+Once this is done you should implement the following contract on the entity;
+
+    Illuminate\Contracts\Auth\Authenticatable
+    
+You chosen entity will need a repository that implements the following;
+
+    Ollieread\Articulate\Contracts\EntityAuthRepository
+    
+Now you can set your auth provider driver to `articulate`.
+
+For those curious, the articulate user provider simply passes through to your repository of choice, 
+giving you far more control over the auth process.
 
