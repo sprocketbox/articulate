@@ -118,7 +118,7 @@ class EntityManager
             throw new \InvalidArgumentException('Invalid entity class provided');
         }
 
-        $mapping     = $this->getMapping($entityClass);
+        $mapping = $this->getMapping($entityClass);
         /**
          * @var \Ollieread\Articulate\Contracts\Entity $entity
          */
@@ -127,18 +127,22 @@ class EntityManager
         // Populate any default attributes if needed
         // We aren't using toArray() because some of the default values may be Arrayable
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $attributes = $mapping->getColumns()->map(function (Column $column) {
+        $attributes = $mapping->getColumns()->keyBy(function (Column $column) {
+            return $column->getColumnName();
+        })->map(function (Column $column) {
             return $column->getDefault();
         })->merge($attributes);
 
         /** @noinspection ForeachSourceInspection */
         foreach ($attributes as $key => $value) {
-            $setter = 'set' . studly_case($key);
             $column = $mapping->getColumn($key);
 
             if ($column) {
                 // If a column mapping exists, we wan't to cast it
                 $value = $column->cast($value);
+                $setter = 'set' . studly_case($column->getAttributeName());
+            } else {
+                $setter = 'set' . studly_case($key);
             }
 
             if (method_exists($entity, $setter)) {
