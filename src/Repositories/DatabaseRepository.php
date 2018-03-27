@@ -51,9 +51,9 @@ class DatabaseRepository extends EntityRepository
     /**
      * @param null|string $entity
      *
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Query\Builder
      */
-    protected function query(?string $entity = null): Builder
+    protected function query(?string $entity = null)
     {
         $database = app(DatabaseManager::class);
 
@@ -71,9 +71,9 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return \Illuminate\Database\Query\Builder
      */
-    protected function getQuery(): Builder
+    protected function getQuery()
     {
         $query = $this->query($this->entity());
 
