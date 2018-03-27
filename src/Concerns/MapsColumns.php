@@ -75,7 +75,11 @@ trait MapsColumns
      */
     public function getColumn(string $column): ?Column
     {
-        return $this->columns->get($column, null);
+        $columnName = $column;
+
+        return $this->columns->first(function (Column $column) use($columnName) {
+            return $column->getColumnName() === $columnName || $column->getAttributeName() === $columnName;
+        });
     }
 
     /**
