@@ -130,6 +130,35 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
+     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
+     *
+     * @return int
+     */
+    public function delete(BaseEntity $entity): int
+    {
+        if (\get_class($entity) === $this->entity()) {
+            $keyName  = $this->mapping()->getKey();
+            $keyValue = $entity->get($keyName);
+
+            return $this->query()->delete($keyValue);
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param mixed $identifier
+     *
+     * @return null|\Ollieread\Articulate\Contracts\Entity
+     */
+    public function load($identifier)
+    {
+        $keyName = $this->mapping()->getKey();
+
+        return $this->getOneBy($keyName, $identifier);
+    }
+
+    /**
      * @param \Illuminate\Database\Query\Builder $query
      * @param int                                $count
      * @param string                             $pageName
@@ -142,7 +171,7 @@ class DatabaseRepository extends EntityRepository
         $paginator = null;
 
         $page    = Paginator::resolveCurrentPage($pageName);
-        $results = $query->forPage($page)->get();
+        $results = $query->forPage($page, $count)->get();
 
         if ($results) {
             $results = $this->hydrate($results);
@@ -189,7 +218,7 @@ class DatabaseRepository extends EntityRepository
 
                     $newKeyValue = $this->query($this->entity())->insertGetId($fields);
 
-                    if (empty($keyValue) && !empty($newKeyValue)) {
+                    if (empty($keyValue) && ! empty($newKeyValue)) {
                         $entity->set($keyName, $newKeyValue);
                     }
 
@@ -207,22 +236,5 @@ class DatabaseRepository extends EntityRepository
         }
 
         return null;
-    }
-
-    /**
-     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
-     *
-     * @return int
-     */
-    public function delete(BaseEntity $entity): int
-    {
-        if (\get_class($entity) === $this->entity()) {
-            $keyName  = $this->mapping()->getKey();
-            $keyValue = $entity->get($keyName);
-
-            return $this->query()->delete($keyValue);
-        }
-
-        return 0;
     }
 }

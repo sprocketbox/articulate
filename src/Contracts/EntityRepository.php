@@ -34,4 +34,11 @@ interface EntityRepository
      * @throws \RuntimeException
      */
     public function hydrate($result);
+
+    /**
+     * @param mixed $identifier
+     *
+     * @return null|\Ollieread\Articulate\Contracts\Entity
+     */
+    public function load($identifier);
 }
