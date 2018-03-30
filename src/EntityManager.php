@@ -139,7 +139,7 @@ class EntityManager
 
             if ($column) {
                 // If a column mapping exists, we wan't to cast it
-                $value = $column->cast($value);
+                $value  = $column->cast($value);
                 $setter = 'set' . studly_case($column->getAttributeName());
             } else {
                 $setter = 'set' . studly_case($key);
@@ -164,5 +164,33 @@ class EntityManager
         }
 
         return $entity;
+    }
+
+    /**
+     * @param \Ollieread\Articulate\Contracts\Entity $entity
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function dehydrate(Entity $entity): array
+    {
+        $mapping    = $this->getMapping(\get_class($entity));
+        $attributes = [];
+
+        $mapping->getColumns()->each(function (Column $column) use ($entity, &$attributes) {
+            $columnName    = $column->getColumnName();
+            $attributeName = $column->getAttributeName();
+            $getter        = 'get' . studly_case($attributeName);
+
+            if (method_exists($entity, $getter)) {
+                $attribute = $entity->{$getter}();
+            } else {
+                $attribute = $entity->get($attributeName);
+            }
+
+            $attributes[$columnName] = $column->toDatabase($attribute);
+        });
+
+        return $attributes;
     }
 }
