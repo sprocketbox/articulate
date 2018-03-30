@@ -54,7 +54,6 @@ class Mapping implements Contract
      * @return mixed|\Ollieread\Articulate\Contracts\Column
      * @throws \RuntimeException
      * @throws \BadMethodCallException
-     * @throws \ReflectionException
      */
     public function __call($name, $arguments)
     {

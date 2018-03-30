@@ -221,12 +221,25 @@ Class | Description |
 `Ollieread\Articulate\Columns\BoolColumn` | Define the column as a boolean |
 `Ollieread\Articulate\Columns\JsonColumn` | Define the column as a json string |
 `Ollieread\Articulate\Columns\EntityColumn` | Define the column as another entity (performs hydration) |
+`Ollieread\Articulate\Columns\FloatColumn` | Define the column as a float (`DECIMAL()` for MySQL) |
+
+There are also the following MongoDB specific columns that are commented out in the config by default
+
+Class | Description |
+:-------|:----|
+`Ollieread\Articulate\Columns\MongoDB\ObjectIdColumn` | Define the column as a MongoDB id (`_id` by default) |
+`Ollieread\Articulate\Columns\MongoDB\SubdocumentColumn` | Define the column as a MongoDB subdocument |
+`Ollieread\Articulate\Columns\MongoDB\UtcColumn` | Define the column as a timestamp for MongoDB |
 
 You can map columns as dynamic using `setDynamic()`. The will prevent the value from being synced to the database. An example of a dynamic column would be the result of an expression in an SQL query or something generated in the code, that doesn't necessarily have a place in the database.
 
 You can also map columns as being immutable using `setImmutable()`. Immutable columns can only be set during the initial hydrating of the entity, and like the dynamic, are ignored when it comes to syncing with the database.
 
 All columns also have the option to provide a default value using `setDefault($default)`.
+
+The `EntityColumn` also has a `setLoad(bool $load)` method. Setting this to true will call the `load($id)` method
+present on its mapped repository in the case that a scalar value is passed into the cast method. This is
+for belongs to relationships.
 
 ### Repositories
 
@@ -282,6 +295,12 @@ An example method within a repository would be as follows;
         
         return new Collection;
     }
+    
+If you find yourself with an entity that needs to be array, you can dehyrdate it as follows;
+
+    $this->manager()->dehydrate(Entity $entity): array;
+    
+This method with dehydrate to an array of the mapped columns. Any data in there not mapped, with not be present in the returned array.
 
 ##### Persisting  
 
