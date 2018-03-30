@@ -16,6 +16,13 @@ use RuntimeException;
  * @method Columns\JsonColumn mapJson(string $attributeName)
  * @method Columns\StringColumn mapString(string $attributeName)
  * @method Columns\TimestampColumn mapTimestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
+ * @method Columns\FloatColumn mapFloat(string $attributeName)
+ *
+ * The following methods are for MongoDB only
+ *
+ * @method Columns\MongoDB\ObjectIdColumn mapObjectId(string $attributeName)
+ * @method Columns\MongoDB\SubdocumentColumn mapSubdocument(string $attributeName, string $entityClass, bool $multiple = false)
+ * @method Columns\MongoDB\UtcColumn mapUtc(string $attributeName)
  *
  * @package Ollieread\Articulate\Concerns
  */
@@ -37,8 +44,8 @@ trait MapsColumns
     public function __call($name, $arguments)
     {
         if (strpos($name, 'map') === 0) {
-            $column = snake_case(substr($name, 3));
-            $columnClass = config('articulate.columns.'.$column, null);
+            $column      = snake_case(substr($name, 3));
+            $columnClass = config('articulate.columns.' . $column, null);
 
             if ($columnClass && class_exists($columnClass)) {
                 return $this->newColumn(config('articulate.columns.' . $column), $arguments);
@@ -77,7 +84,7 @@ trait MapsColumns
     {
         $columnName = $column;
 
-        return $this->columns->first(function (Column $column) use($columnName) {
+        return $this->columns->first(function (Column $column) use ($columnName) {
             return $column->getColumnName() === $columnName || $column->getAttributeName() === $columnName;
         });
     }
@@ -94,7 +101,7 @@ trait MapsColumns
         try {
             /** @noinspection PhpParamsInspection */
             return $this->mapColumn((new \ReflectionClass($columnClass))->newInstanceArgs($arguments));
-        } catch(\ReflectionException $e) {
+        } catch (\ReflectionException $e) {
             throw new \InvalidArgumentException('Invalid column type', 0, $e);
         }
     }
