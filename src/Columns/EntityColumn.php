@@ -24,6 +24,11 @@ class EntityColumn extends BaseColumn
     protected $multiple;
 
     /**
+     * @var bool
+     */
+    protected $load = false;
+
+    /**
      * EntityColumn constructor.
      *
      * @param string $columnName
@@ -34,7 +39,7 @@ class EntityColumn extends BaseColumn
     {
         parent::__construct($columnName);
         $this->entityClass = $entityClass;
-        $this->multiple = $multiple;
+        $this->multiple    = $multiple;
     }
 
     /**
@@ -47,6 +52,16 @@ class EntityColumn extends BaseColumn
     {
         if (! $value || $value instanceof $this->entityClass) {
             return $value;
+        }
+
+        if (is_scalar($value)) {
+            $repository = app(EntityManager::class)->repository($this->entityClass);
+
+            if ($this->load && $repository) {
+                return $repository->load($value);
+            }
+
+            return null;
         }
 
         if (\is_array($value) && \is_array(array_first($value))) {
@@ -77,5 +92,17 @@ class EntityColumn extends BaseColumn
         $mapping = app(EntityManager::class)->getMapping($this->entityClass);
 
         return $value instanceof BaseEntity ? $value->{'get' . studly_case($mapping->getKey())}() : $value;
+    }
+
+    /**
+     * @param bool $load
+     *
+     * @return $this
+     */
+    public function setLoad(bool $load): self
+    {
+        $this->load = $load;
+
+        return $this;
     }
 }
