@@ -210,10 +210,10 @@ class DatabaseRepository extends EntityRepository
 
                 if ($insert) {
                     if (! isset($fields['created_at']) && $columns->has('created_at')) {
-                        $fields['created_at'] = $now;
+                        $fields['created_at'] = $columns->get('created_at')->toDatabase($now);
                     }
                     if (! isset($fields['updated_at']) && $columns->has('updated_at')) {
-                        $fields['updated_at'] = $now;
+                        $fields['updated_at'] = $columns->get('updated_at')->toDatabase($now);
                     }
 
                     $newKeyValue = $this->query($this->entity())->insertGetId($fields);
@@ -225,7 +225,7 @@ class DatabaseRepository extends EntityRepository
                     $entity->setPersisted();
                 } else {
                     if ($columns->has('updated_at')) {
-                        $fields['updated_at'] = $now;
+                        $fields['updated_at'] = $columns->get('updated_at')->toDatabase($now);
                     }
 
                     $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);
