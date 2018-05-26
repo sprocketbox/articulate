@@ -3,7 +3,6 @@
 namespace Ollieread\Articulate\Contracts;
 
 use Ollieread\Articulate\EntityManager;
-use Ollieread\Articulate\Mapping;
 
 /**
  * Class EntityRepository
@@ -18,7 +17,7 @@ interface EntityRepository
     public function manager(): EntityManager;
 
     /**
-     * @return \Ollieread\Articulate\Mapping
+     * @return \Ollieread\Articulate\Contracts\Mapping
      */
     public function mapping(): Mapping;
 

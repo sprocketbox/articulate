@@ -10,7 +10,10 @@ use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
+use Ollieread\Articulate\Concerns;
 use Ollieread\Articulate\Contracts\Column;
+use Ollieread\Articulate\Criteria\WhereCriteria;
+use Ollieread\Articulate\Criteria\WhereExpression;
 use Ollieread\Articulate\Entities\BaseEntity;
 
 /**
@@ -20,6 +23,7 @@ use Ollieread\Articulate\Entities\BaseEntity;
  */
 class DatabaseRepository extends EntityRepository
 {
+    use Concerns\HandlesCriteria;
 
     /**
      * Magic method handling for dynamic functions such as getByAddress() or getOneById().
@@ -33,8 +37,7 @@ class DatabaseRepository extends EntityRepository
     public function __call($name, array $arguments = [])
     {
         if (\count($arguments) > 1) {
-            // TODO: Should probably throw an exception here
-            return null;
+            throw new \InvalidArgumentException('Invalid argument count');
         }
 
         if (0 === strpos($name, 'getBy')) {
@@ -42,7 +45,7 @@ class DatabaseRepository extends EntityRepository
         }
 
         if (0 === strpos($name, 'getOneBy')) {
-            return $this->getOneBy(snake_case(substr($name, 5)), $arguments[0]);
+            return $this->getOneBy(snake_case(substr($name, 8)), $arguments[0]);
         }
 
         return null;
@@ -75,22 +78,31 @@ class DatabaseRepository extends EntityRepository
      */
     protected function getQuery()
     {
-        $query = $this->query($this->entity());
+        $query     = $this->query($this->entity());
+        $argCount  = \func_num_args();
+        $arguments = \func_get_args();
 
-        if (\func_num_args() === 2) {
-            [$column, $value] = \func_get_args();
-            $method = \is_array($value) ? 'whereIn' : 'where';
-            $query  = $value instanceof Expression ? $query->$method($value) : $query->$method($column, $value);
-        } elseif (\func_num_args() === 1) {
-            $columns = \func_get_arg(0);
+        if ($argCount === 1 && \is_array($arguments)) {
+            $arguments = $arguments[0];
+        } else if (($argCount % 2) === 0) {
+            $keys      = array_filter($arguments, function ($value, $key) {
+                return $key === 0 || ($key % 2) === 0;
+            }, ARRAY_FILTER_USE_BOTH);
+            $values    = array_diff($arguments, $keys);
+            $arguments = array_combine($keys, $values);
+        }
 
-            if (\is_array($columns)) {
-                foreach ($columns as $column => $value) {
-                    $method = \is_array($value) ? 'whereIn' : 'where';
-                    $query  = $value instanceof Expression ? $query->$method($value) : $query->$method($column, $value);
+        if ($arguments) {
+            foreach ($arguments as $column => $value) {
+                if ($value instanceof Expression) {
+                    $this->withCriteria(new WhereExpression($value));
+                } else {
+                    $this->withCriteria(new WhereCriteria($column, '=', $value));
                 }
             }
         }
+
+        $this->performCriteria($query);
 
         return $query;
     }
@@ -167,6 +179,7 @@ class DatabaseRepository extends EntityRepository
      */
     protected function paginate(Builder $query, int $count, string $pageName = 'page'): LengthAwarePaginatorContract
     {
+        $this->performCriteria($query);
         $total     = $query->getCountForPagination();
         $paginator = null;
 
