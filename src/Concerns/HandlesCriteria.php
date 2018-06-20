@@ -12,21 +12,17 @@ trait HandlesCriteria
      */
     protected $criteria;
 
-    public function getAllCriteria(): Collection
-    {
-        return $this->criteria ?? ($this->criteria = new Collection);
-    }
+    /**
+     * @var bool
+     */
+    protected $skipCriteria = false;
 
     /**
-     * @param string $criteriaClass
-     *
      * @return \Illuminate\Support\Collection
      */
-    public function getCriteria(string $criteriaClass): Collection
+    public function getCriteria(): Collection
     {
-        return $this->getAllCriteria()->filter(function (Criteria $criteria) use ($criteriaClass) {
-            return \get_class($criteria) === $criteriaClass;
-        });
+        return $this->criteria ?? ($this->criteria = new Collection);
     }
 
     /**
@@ -34,18 +30,40 @@ trait HandlesCriteria
      *
      * @return $this
      */
-    public function withCriteria($criteria): self
+    public function pushCriteria($criteria): self
     {
         if (! ($criteria instanceof Criteria)) {
             if (class_exists($criteria)) {
-                $criteria = new $criteria;
-            } else {
-                throw new \InvalidArgumentException('Invalid criteria');
+                try {
+                    $criteria = new $criteria;
+                } catch (\Exception $e) {
+                }
             }
         }
 
-        $this->getAllCriteria()->push($criteria);
+        if ($criteria instanceof Criteria && $criteria->validFor($this->entity())) {
+            $this->getCriteria()->push($criteria);
+            return $this;
+        }
 
+        throw new \InvalidArgumentException('Invalid criteria');
+    }
+
+    /**
+     * @return $this
+     */
+    public function withCriteria(): self
+    {
+        $this->skipCriteria = false;
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function withoutCriteria(): self
+    {
+        $this->skipCriteria = true;
         return $this;
     }
 
@@ -55,28 +73,26 @@ trait HandlesCriteria
     public function resetCriteria(): self
     {
         $this->criteria = new Collection;
-
         return $this;
-    }
-
-    public function hasCriteria(string $criteriaClass): bool
-    {
-        return $this->getAllCriteria()->contains(function (Criteria $criteria) use ($criteriaClass) {
-            return \get_class($criteria) === $criteriaClass;
-        });
     }
 
     /**
      * @param $query
+     *
+     * @return \Ollieread\Articulate\Query\Builder
      */
-    protected function performCriteria($query): void
+    protected function applyCriteria($query)
     {
-        $criteria = $this->getAllCriteria()->sortBy(function (Criteria $criteria) {
-            return $criteria->getPriority();
-        });
+        if (! $this->skipCriteria) {
+            $criteria = $this->getCriteria()->sortBy(function (Criteria $criteria) {
+                return $criteria->getPriority();
+            });
 
-        $criteria->each(function (Criteria $criteria) use ($query) {
-            $criteria->perform($query);
-        });
+            $criteria->each(function (Criteria $criteria) use ($query) {
+                $criteria->perform($query);
+            });
+        }
+
+        return $query;
     }
 }

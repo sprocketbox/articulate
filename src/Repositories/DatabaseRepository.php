@@ -5,16 +5,18 @@ namespace Ollieread\Articulate\Repositories;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Ollieread\Articulate\Concerns;
 use Ollieread\Articulate\Contracts\Column;
+use Ollieread\Articulate\Contracts\Criteria;
+use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\Criteria\WhereCriteria;
 use Ollieread\Articulate\Criteria\WhereExpression;
 use Ollieread\Articulate\Entities\BaseEntity;
+use Ollieread\Articulate\Query\Builder;
 
 /**
  * Class DatabaseRepository
@@ -54,31 +56,31 @@ class DatabaseRepository extends EntityRepository
     /**
      * @param null|string $entity
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return \Ollieread\Articulate\Query\Builder
      */
-    protected function query(?string $entity = null)
+    protected function query(?string $entity = null): Builder
     {
         $database = app(DatabaseManager::class);
-
-        $entity = $entity ?? $this->entity();
+        $entity   = $entity ?? $this->entity();
 
         if ($entity) {
             $mapping    = ($entity === $this->entity() ? $this->mapping() : $this->manager()->getMapping($entity));
             $connection = $mapping->getConnection();
             $table      = $mapping->getTable();
 
-            return $database->connection($connection)->query()->from($table);
+            $query = $database->connection($connection)->query()->from($table);
+        } else {
+            $query = $database->connection()->query();
         }
 
-        return $database->connection()->query();
+        return (new Builder($query, $this->manager()))->setEntity($entity);
     }
 
     /**
-     * @return \Illuminate\Database\Query\Builder
+     * @return array
      */
-    protected function getQuery()
+    protected function getQueryCriteria(): array
     {
-        $query     = $this->query($this->entity());
         $argCount  = \func_num_args();
         $arguments = \func_get_args();
 
@@ -92,53 +94,64 @@ class DatabaseRepository extends EntityRepository
             $arguments = array_combine($keys, $values);
         }
 
+        $criteria = [];
+
         if ($arguments) {
             foreach ($arguments as $column => $value) {
                 if ($value instanceof Expression) {
-                    $this->withCriteria(new WhereExpression($value));
+                    $criteria[] = new WhereExpression($value);
                 } else {
-                    $this->withCriteria(new WhereCriteria($column, '=', $value));
+                    $criteria[] = new WhereCriteria($column, '=', $value);
                 }
             }
         }
 
-        $this->performCriteria($query);
-
-        return $query;
+        return $criteria;
     }
 
     /**
      * Helper method for retrieving entities by a column or array of columns.
      *
-     * @return mixed
+     * @return \Illuminate\Support\Collection
+     *
      * @throws \RuntimeException
      */
-    public function getBy(): ?Collection
+    public function getBy(): Collection
     {
-        $results = \call_user_func_array([$this, 'getQuery'], \func_get_args())->get();
+        return $this->getByCriteria(...$this->getQueryCriteria(...\func_get_args()));
+    }
 
-        if ($results) {
-            return $this->hydrate($results);
-        }
-
-        return new Collection;
+    /**
+     * @param \Ollieread\Articulate\Contracts\Criteria ...$criteria
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function getByCriteria(Criteria... $criteria): Collection
+    {
+        collect($criteria)->each([$this, 'pushCriteria']);
+        return $this->applyCriteria($this->query())->get() ?? new Collection;
     }
 
     /**
      * Helper method for retrieving an entity by a column or array of columns.
      *
-     * @return mixed
+     * @return null|\Ollieread\Articulate\Contracts\Entity
      * @throws \RuntimeException
      */
     public function getOneBy(): ?BaseEntity
     {
-        $results = \call_user_func_array([$this, 'getQuery'], \func_get_args())->first();
+        return $this->getOneByCriteria(...$this->getQueryCriteria(...\func_get_args()));
+    }
 
-        if ($results) {
-            return $this->hydrate($results);
-        }
-
-        return null;
+    /**
+     * @param \Ollieread\Articulate\Contracts\Criteria ...$criteria
+     *
+     * @return null|\Ollieread\Articulate\Contracts\Entity
+     */
+    public function getOneByCriteria(Criteria... $criteria): ?Entity
+    {
+        collect($criteria)->each([$this, 'pushCriteria']);
+        return $this->applyCriteria($this->query())->first();
     }
 
     /**
@@ -171,24 +184,19 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
-     * @param \Illuminate\Database\Query\Builder $query
-     * @param int                                $count
-     * @param string                             $pageName
+     * @param int    $count
+     * @param string $pageName
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    protected function paginate(Builder $query, int $count, string $pageName = 'page'): LengthAwarePaginatorContract
+    protected function paginate(int $count, string $pageName = 'page'): LengthAwarePaginatorContract
     {
-        $this->performCriteria($query);
-        $total     = $query->getCountForPagination();
+        $query     = $this->applyCriteria($this->query());
+        $total     = $query->toBase()->getCountForPagination();
         $paginator = null;
 
         $page    = Paginator::resolveCurrentPage($pageName);
         $results = $query->forPage($page, $count)->get();
-
-        if ($results) {
-            $results = $this->hydrate($results);
-        }
 
         return new LengthAwarePaginator($results, $total, $count, $page, [
             'path'     => Paginator::resolveCurrentPath(),
@@ -197,12 +205,12 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
-     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
+     * @param \Ollieread\Articulate\Contracts\Entity $entity
      *
-     * @return \Ollieread\Articulate\Entities\BaseEntity
+     * @return \Ollieread\Articulate\Contracts\Entity
      * @throws \RuntimeException
      */
-    public function save(BaseEntity $entity): ?BaseEntity
+    public function save(Entity $entity): ?Entity
     {
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();
