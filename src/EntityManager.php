@@ -2,8 +2,9 @@
 
 namespace Ollieread\Articulate;
 
-use Illuminate\Support\Collection;
-use KitchenSink\Entities\Users\LessonProgress;
+use Illuminate\Database\Concerns\BuildsQueries;
+use Ollieread\Articulate\Support\Collection;
+use Illuminate\Support\Collection as LaravelCollection;
 use Ollieread\Articulate\Contracts\Column;
 use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\Contracts\EntityMapping;
@@ -13,14 +14,16 @@ use Ollieread\Articulate\Repositories\EntityRepository as BaseRepository;
 
 class EntityManager
 {
+    use BuildsQueries;
+
     /**
-     * @var \Illuminate\Support\Collection
+     * @var LaravelCollection
      */
     protected $mappings;
 
     public function __construct()
     {
-        $this->mappings = new Collection;
+        $this->mappings = new LaravelCollection;
     }
 
     /**
@@ -141,29 +144,20 @@ class EntityManager
             if ($column) {
                 $attributeName = $column->getAttributeName();
                 $columnName    = $column->getColumnName();
-                $setter        = 'set' . studly_case($attributeName);
 
                 // If a mapping has a different column name, we want to actually set that attribute
                 // simply because it's useful to have that data
                 if ($columnName && $attributeName !== $columnName) {
-                    $entity->set($columnName, $value);
+                    $entity->setAttribute($columnName, $value);
                     $key = $attributeName;
                 }
 
                 // If a column mapping exists, we wan't to cast it, which we don't want to do before
                 // we do the above
                 $value = $column->cast($value);
-            } else {
-                $setter = 'set' . studly_case($key);
             }
 
-            if (method_exists($entity, $setter)) {
-                // If a specific setter exists, we'll call that
-                $entity->{$setter}($value);
-            } else {
-                // If we don't have a setter, we set the attribute anyway
-                $entity->set($key, $value);
-            }
+            $entity->setAttribute($key, $value);
         }
 
         // We call the hydrated method as a sort of event, sometimes dynamic properties will be set here

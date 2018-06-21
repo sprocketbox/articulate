@@ -9,6 +9,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\EntityManager;
+use Ollieread\Articulate\Support\Collection;
 
 /**
  * @mixin \Illuminate\Database\Query\Builder
@@ -45,6 +46,11 @@ class Builder
     protected $localMacros = [];
 
     /**
+     * @var array
+     */
+    protected $with = [];
+
+    /**
      * The methods that should be returned from query builder.
      *
      * @var array
@@ -68,6 +74,11 @@ class Builder
     {
         $this->setQuery($query);
         $this->manager = $entityManager;
+    }
+
+    protected function newCollection($items = [])
+    {
+        return new Collection($items);
     }
 
     public function setEntity(string $entity): self
@@ -94,6 +105,12 @@ class Builder
         return $this;
     }
 
+    public function with(string... $relationships)
+    {
+        $this->with = array_merge($this->with, $relationships);
+        return $this;
+    }
+
     /**
      * @return \Illuminate\Database\Query\Builder
      */
@@ -114,9 +131,9 @@ class Builder
 
     public function get($columns = ['*'])
     {
-        return $this->query->get($columns)->map(function (\stdClass $row) {
+        return $this->newCollection($this->query->get($columns)->map(function (\stdClass $row) {
             return $this->manager->hydrate($this->entity, $row);
-        });
+        }));
     }
 
     /**

@@ -20,11 +20,40 @@ trait HasAttributes
     private $_dirty = [];
 
     /**
+     * @param $name
+     * @param $value
+     *
+     * @return null
+     */
+    public function __set($name, $value)
+    {
+        return $this->set($name, $value);
+    }
+
+    /**
      * @param string $attribute
      * @param        $value
+     *
+     * @return mixed
      */
     public function set(string $attribute, $value): void
     {
+        $methodName = 'set' . studly_case($attribute);
+
+        if (method_exists($this, $methodName)) {
+            $this->{$methodName}();
+        }
+
+        $this->setAttribute($attribute, $value);
+    }
+
+    /**
+     * @param string $attribute
+     * @param        $value
+     */
+    public function setAttribute(string $attribute, $value): void
+    {
+        $attribute                     = snake_case($attribute);
         $this->_attributes[$attribute] = $value;
         $this->_dirty[]                = $attribute;
     }
@@ -34,9 +63,9 @@ trait HasAttributes
      *
      * @return mixed
      */
-    public function get(string $attribute)
+    public function __get(string $attribute)
     {
-        return $this->_attributes[$attribute] ?? null;
+        return $this->get($attribute);
     }
 
     /**
@@ -44,20 +73,25 @@ trait HasAttributes
      *
      * @return mixed
      */
-    public function __get(string $attribute)
+    public function get(string $attribute)
     {
-        return $this->get(snake_case($attribute));
+        $methodName = 'get' . studly_case($attribute);
+        if (method_exists($this, $methodName)) {
+
+            return $this->{$methodName}();
+        }
+
+        return $this->getAttribute($attribute);
     }
 
     /**
-     * @param $name
-     * @param $value
+     * @param string $attribute
      *
      * @return null
      */
-    public function __set($name, $value)
+    public function getAttribute(string $attribute)
     {
-        return null;
+        return $this->_attributes[snake_case($attribute)] ?? null;
     }
 
     /**

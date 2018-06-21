@@ -8,14 +8,13 @@ use Illuminate\Database\DatabaseManager;
 use Illuminate\Database\Query\Expression;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
+use Ollieread\Articulate\Support\Collection;
 use Ollieread\Articulate\Concerns;
 use Ollieread\Articulate\Contracts\Column;
 use Ollieread\Articulate\Contracts\Criteria;
 use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\Criteria\WhereCriteria;
 use Ollieread\Articulate\Criteria\WhereExpression;
-use Ollieread\Articulate\Entities\BaseEntity;
 use Ollieread\Articulate\Query\Builder;
 
 /**
@@ -112,7 +111,7 @@ class DatabaseRepository extends EntityRepository
     /**
      * Helper method for retrieving entities by a column or array of columns.
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Ollieread\Articulate\Support\Collection
      *
      * @throws \RuntimeException
      */
@@ -124,7 +123,7 @@ class DatabaseRepository extends EntityRepository
     /**
      * @param \Ollieread\Articulate\Contracts\Criteria ...$criteria
      *
-     * @return \Illuminate\Support\Collection
+     * @return \Ollieread\Articulate\Support\Collection
      */
     public function getByCriteria(Criteria... $criteria): Collection
     {
@@ -138,7 +137,7 @@ class DatabaseRepository extends EntityRepository
      * @return null|\Ollieread\Articulate\Contracts\Entity
      * @throws \RuntimeException
      */
-    public function getOneBy(): ?BaseEntity
+    public function getOneBy(): ?Entity
     {
         return $this->getOneByCriteria(...$this->getQueryCriteria(...\func_get_args()));
     }
@@ -155,11 +154,11 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
-     * @param \Ollieread\Articulate\Entities\BaseEntity $entity
+     * @param \Ollieread\Articulate\Contracts\Entity $entity
      *
      * @return int
      */
-    public function delete(BaseEntity $entity): int
+    public function delete(Entity $entity): int
     {
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();

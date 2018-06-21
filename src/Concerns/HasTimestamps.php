@@ -8,24 +8,24 @@ trait HasTimestamps
 {
     public function getCreatedAt(): ?Carbon
     {
-        return $this->get('created_at');
+        return $this->getAttribute('created_at');
     }
 
     public function setCreatedAt(Carbon $value): self
     {
-        $this->set('created_at', $value);
+        $this->setAttribute('created_at', $value);
 
         return $this;
     }
 
     public function getUpdatedAt(): ?Carbon
     {
-        return $this->get('created_at');
+        return $this->getAttribute('created_at');
     }
 
     public function setUpdatedAt(Carbon $value): self
     {
-        $this->set('updated_at', $value);
+        $this->setAttribute('updated_at', $value);
 
         return $this;
     }

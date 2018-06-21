@@ -7,12 +7,12 @@ trait HasAutoincrement
 
     public function getId(): int
     {
-        return $this->get('id');
+        return $this->getAttribute('id');
     }
 
     public function setId(int $value): self
     {
-        $this->set('id', $value);
+        $this->setAttribute('id', $value);
 
         return $this;
     }

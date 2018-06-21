@@ -9,7 +9,9 @@ use Ollieread\Articulate\Contracts\Mapping as Contract;
 
 class Mapping implements Contract
 {
-    use Concerns\MapsColumns, Macroable {
+    use Concerns\MapsColumns,
+        Concerns\MapsRelationships,
+        Macroable {
         Macroable::__call as macroCall;
         MapsColumns::__call as columnCall;
     }
@@ -41,10 +43,11 @@ class Mapping implements Contract
 
     public function __construct(string $entity, string $connection, ?string $table = null)
     {
-        $this->entity     = $entity;
-        $this->connection = $connection;
-        $this->table      = $table;
-        $this->columns    = new Collection;
+        $this->entity        = $entity;
+        $this->connection    = $connection;
+        $this->table         = $table;
+        $this->columns       = new Collection;
+        $this->relationships = new Collection;
     }
 
     /**

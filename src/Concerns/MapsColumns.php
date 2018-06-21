@@ -10,19 +10,19 @@ use RuntimeException;
 /**
  * Trait MapsColumns
  *
- * @method Columns\BoolColumn mapBool(string $attributeName)
- * @method Columns\EntityColumn mapEntity(string $attributeName, string $entityClass, bool $multiple = false)
- * @method Columns\IntColumn mapInt(string $attributeName)
- * @method Columns\JsonColumn mapJson(string $attributeName)
- * @method Columns\StringColumn mapString(string $attributeName)
- * @method Columns\TimestampColumn mapTimestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
- * @method Columns\FloatColumn mapFloat(string $attributeName)
+ * @method Columns\BoolColumn bool(string $attributeName)
+ * @method Columns\EntityColumn entity(string $attributeName, string $entityClass, bool $multiple = false)
+ * @method Columns\IntColumn int(string $attributeName)
+ * @method Columns\JsonColumn json(string $attributeName)
+ * @method Columns\StringColumn string(string $attributeName)
+ * @method Columns\TimestampColumn timestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
+ * @method Columns\FloatColumn float(string $attributeName)
  *
  * The following methods are for MongoDB only
  *
- * @method Columns\MongoDB\ObjectIdColumn mapObjectId(string $attributeName)
- * @method Columns\MongoDB\SubdocumentColumn mapSubdocument(string $attributeName, string $entityClass, bool $multiple = false)
- * @method Columns\MongoDB\UtcColumn mapUtc(string $attributeName)
+ * @method Columns\MongoDB\ObjectIdColumn objectId(string $attributeName)
+ * @method Columns\MongoDB\SubdocumentColumn subdocument(string $attributeName, string $entityClass, bool $multiple = false)
+ * @method Columns\MongoDB\UtcColumn utc(string $attributeName)
  *
  * @package Ollieread\Articulate\Concerns
  */
@@ -43,13 +43,11 @@ trait MapsColumns
      */
     public function __call($name, $arguments)
     {
-        if (strpos($name, 'map') === 0) {
-            $column      = snake_case(substr($name, 3));
-            $columnClass = config('articulate.columns.' . $column, null);
+        $column      = snake_case($name);
+        $columnClass = config('articulate.columns.' . $column, null);
 
-            if ($columnClass && class_exists($columnClass)) {
-                return $this->newColumn(config('articulate.columns.' . $column), $arguments);
-            }
+        if ($columnClass && class_exists($columnClass)) {
+            return $this->newColumn(config('articulate.columns.' . $column), $arguments);
         }
 
         throw new RuntimeException('Invalid column');
@@ -98,11 +96,18 @@ trait MapsColumns
      */
     protected function newColumn(string $columnClass, $arguments): Column
     {
-        try {
-            /** @noinspection PhpParamsInspection */
-            return $this->mapColumn((new \ReflectionClass($columnClass))->newInstanceArgs($arguments));
-        } catch (\ReflectionException $e) {
-            throw new \InvalidArgumentException('Invalid column type', 0, $e);
-        }
+        return $this->mapColumn(new $columnClass(...$arguments));
+    }
+
+    public function timestamps()
+    {
+        $this->timestamp('created_at');
+        $this->timestamp('updated_at');
+    }
+
+    public function utcTimestamps()
+    {
+        $this->utc('created_at');
+        $this->utc('updated_at');
     }
 }

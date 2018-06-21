@@ -2,7 +2,7 @@
 
 namespace Ollieread\Articulate\Concerns;
 
-use Illuminate\Support\Collection;
+use Ollieread\Articulate\Support\Collection;
 use Ollieread\Articulate\Contracts\Mapping;
 use Ollieread\Articulate\EntityManager;
 
@@ -89,7 +89,7 @@ trait HandlesEntities
      *
      * @param null|string $entity
      *
-     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Illuminate\Support\Collection
+     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Ollieread\Articulate\Support\Collection
      */
     public function hydrate($result, ?string $entity = null)
     {

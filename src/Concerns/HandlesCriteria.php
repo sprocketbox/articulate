@@ -2,7 +2,8 @@
 
 namespace Ollieread\Articulate\Concerns;
 
-use Illuminate\Support\Collection;
+use Ollieread\Articulate\Support\Collection;
+use Illuminate\Support\Collection as LaravelCollection;
 use Ollieread\Articulate\Contracts\Criteria;
 
 trait HandlesCriteria
@@ -18,11 +19,11 @@ trait HandlesCriteria
     protected $skipCriteria = false;
 
     /**
-     * @return \Illuminate\Support\Collection
+     * @return LaravelCollection
      */
-    public function getCriteria(): Collection
+    public function getCriteria(): LaravelCollection
     {
-        return $this->criteria ?? ($this->criteria = new Collection);
+        return $this->criteria ?? ($this->criteria = new LaravelCollection);
     }
 
     /**
@@ -72,7 +73,7 @@ trait HandlesCriteria
      */
     public function resetCriteria(): self
     {
-        $this->criteria = new Collection;
+        $this->criteria = new LaravelCollection;
         return $this;
     }
 

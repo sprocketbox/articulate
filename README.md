@@ -88,24 +88,24 @@ The method name should match the column name in studly case, with getters being 
     {        
         public function getId(): int
         {
-            return $this->get('id');
+            return $this->getAttribute('id');
         }
         
         public function setId(int $id): Test
         {
-            $this->set('id', $id);
+            $this->setAttribute('id', $id);
     
             return $this;
         }
         
         public function getName(): string
         {
-            return $this->get('name');
+            return $this->getAttribute('name');
         }
         
         public function setName(string $name): Test
         {
-            $this->set('name', $name);
+            $this->setAttribute('name', $name);
     
             return $this;
         }
@@ -115,7 +115,7 @@ The BaseEntity keeps track of the entities attributes, as well as whether or not
 
 It also provides a global setter and getter.
 
-The BaseEntity class also contains a `__get(string $attribute)` implementation so you can access attribute as if they were properties. To help with IDE implementation, I suggest that you use the `@property-ready type $attribute` helpers to your entity class doc block. Like the following;
+The BaseEntity class also contains a `__getAttribute(string $attribute)` implementation so you can access attribute as if they were properties. To help with IDE implementation, I suggest that you use the `@property-ready type $attribute` helpers to your entity class doc block. Like the following;
 
     /**
      * Class Test
@@ -131,11 +131,11 @@ The BaseEntity class also contains a `__get(string $attribute)` implementation s
     
 #### Setters
 
-Your setters should call the `set(string $column, mixed $value)` method from the BaseEntity.
+Your setters should call the `setAttribute(string $column, mixed $value)` method from the BaseEntity.
 
 #### Getters
 
-Your getters should call the `get(string $column)` method from the BaseEntity;
+Your getters should call the `getAttribute(string $column)` method from the BaseEntity;
     
 ### Mappings
 
@@ -287,7 +287,7 @@ An example method within a repository would be as follows;
             $query->where('active', '=', 1);
         }
 
-        $results = $query->get();
+        $results = $query->getAttribute();
 
         if ($results) {
             return $this->hydrate($results);

@@ -10,12 +10,16 @@ interface Entity
      */
     public function set(string $attribute, $value): void;
 
+    public function setAttribute(string $attribute, $value);
+
     /**
      * @param string $attribute
      *
      * @return mixed
      */
     public function get(string $attribute);
+
+    public function getAttribute(string $attribute);
 
     /**
      * @param null|string $column

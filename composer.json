@@ -3,7 +3,7 @@
     "description": "A simple lightweight drop in to replace Eloquent",
     "type": "library",
     "license": "MIT",
-    "version": "v1.0",
+    "version": "v1.1.1-beta",
     "authors": [
         {
             "name": "Ollie Read",
@@ -17,7 +17,10 @@
     "autoload": {
         "psr-4": {
             "Ollieread\\Articulate\\": "src/"
-        }
+        },
+        "files": [
+            "src/helpers.php"
+        ]
     },
     "extra": {
         "laravel": {

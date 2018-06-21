@@ -29,7 +29,7 @@ interface EntityRepository
     /**
      * @param $result
      *
-     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Illuminate\Support\Collection
+     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Ollieread\Articulate\Support\Collection
      * @throws \RuntimeException
      */
     public function hydrate($result);

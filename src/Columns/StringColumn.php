@@ -1,6 +1,7 @@
 <?php
 
 namespace Ollieread\Articulate\Columns;
+use Illuminate\Database\Schema\Blueprint;
 
 /**
  * Class StringColumn

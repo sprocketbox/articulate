@@ -2,7 +2,7 @@
 
 namespace Ollieread\Articulate\Columns;
 
-use Illuminate\Support\Collection;
+use Ollieread\Articulate\Support\Collection;
 use Ollieread\Articulate\Entities\BaseEntity;
 use Ollieread\Articulate\EntityManager;
 
@@ -45,7 +45,7 @@ class EntityColumn extends BaseColumn
     /**
      * @param $value
      *
-     * @return null|\Ollieread\Articulate\Entities\BaseEntity|\Illuminate\Support\Collection|null
+     * @return null|\Ollieread\Articulate\Entities\BaseEntity|\Ollieread\Articulate\Support\Collection|null
      * @throws \RuntimeException
      */
     public function cast($value)
