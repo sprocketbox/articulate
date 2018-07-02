@@ -40,4 +40,11 @@ interface EntityRepository
      * @return null|\Ollieread\Articulate\Contracts\Entity
      */
     public function load($identifier);
+
+    /**
+     * @param \Ollieread\Articulate\Contracts\Entity $entity
+     *
+     * @return null|\Ollieread\Articulate\Contracts\Entity
+     */
+    public function save(Entity $entity): ?Entity;
 }

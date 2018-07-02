@@ -19,7 +19,11 @@ interface Entity
      */
     public function get(string $attribute);
 
+    public function getAll(): array;
+
     public function getAttribute(string $attribute);
+
+    public function getAttributes(): array;
 
     /**
      * @param null|string $column

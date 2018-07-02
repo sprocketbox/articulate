@@ -216,8 +216,10 @@ class DatabaseRepository extends EntityRepository
             $keyValue = $entity->get($keyName);
             $insert   = ! $entity->isPersisted();
 
-            $fields = [];
+            $fields   = [];
+            $entities = [];
 
+            // todo: Cascade saving to child entities
             $columns = $this->mapping()->getColumns();
             $columns->each(function (Column $column, string $name) use ($entity, &$fields) {
                 if (! $column->isImmutable() && ! $column->isDynamic() && $entity->isDirty($name)) {
@@ -254,7 +256,5 @@ class DatabaseRepository extends EntityRepository
                 return $entity;
             }
         }
-
-        return null;
     }
 }

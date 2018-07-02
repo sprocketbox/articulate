@@ -7,10 +7,14 @@ use Illuminate\Support\Traits\Macroable;
 use Ollieread\Articulate\Concerns\MapsColumns;
 use Ollieread\Articulate\Contracts\Mapping as Contract;
 
+/**
+ * Class Mapping
+ *
+ * @package Ollieread\Articulate
+ */
 class Mapping implements Contract
 {
     use Concerns\MapsColumns,
-        Concerns\MapsRelationships,
         Macroable {
         Macroable::__call as macroCall;
         MapsColumns::__call as columnCall;

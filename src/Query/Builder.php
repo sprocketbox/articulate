@@ -7,6 +7,7 @@ use Closure;
 use Illuminate\Database\Concerns\BuildsQueries;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Traits\Macroable;
 use Ollieread\Articulate\Contracts\Entity;
 use Ollieread\Articulate\EntityManager;
 use Ollieread\Articulate\Support\Collection;

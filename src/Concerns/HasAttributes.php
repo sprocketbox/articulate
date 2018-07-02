@@ -84,6 +84,13 @@ trait HasAttributes
         return $this->getAttribute($attribute);
     }
 
+    public function getAll(): array
+    {
+        return collect($this->_attributes)->mapWithKeys(function ($value, $key) {
+            return $this->get($key);
+        })->toArray();
+    }
+
     /**
      * @param string $attribute
      *
@@ -92,6 +99,11 @@ trait HasAttributes
     public function getAttribute(string $attribute)
     {
         return $this->_attributes[snake_case($attribute)] ?? null;
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->_attributes;
     }
 
     /**

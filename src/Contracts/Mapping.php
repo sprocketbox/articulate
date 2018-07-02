@@ -3,13 +3,11 @@
 namespace Ollieread\Articulate\Contracts;
 
 use Illuminate\Support\Collection;
-use Ollieread\Articulate\Relationships\Relationship;
 
 /**
  * Interface Mapping
  *
  * @mixin \Ollieread\Articulate\Concerns\MapsColumns
- * @mixin \Ollieread\Articulate\Concerns\MapsRelationships
  * 
  * @package Ollieread\Articulate\Contracts
  */
@@ -72,8 +70,4 @@ interface Mapping
      * @return null|\Ollieread\Articulate\Contracts\Column
      */
     public function getColumn(string $column): ?Column;
-
-    public function getRelationships(): Collection;
-
-    public function mapRelationship(Relationship $relationship);
 }

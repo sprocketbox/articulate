@@ -69,7 +69,7 @@ class EntityManager
     public function getMapping(string $entity): Mapping
     {
         if (! $this->mappings->has($entity)) {
-            throw new \InvalidArgumentException('Mapping not found for: ' . $entity);
+            throw new \InvalidArgumentException(sprintf('Mapping not found for entity: %s', $entity));
         }
 
         return $this->mappings->get($entity);
@@ -119,46 +119,48 @@ class EntityManager
         }
 
         if (! class_exists($entityClass)) {
-            throw new \InvalidArgumentException('Invalid entity class provided');
+            throw new \InvalidArgumentException(sprintf('Invalid entity class provided %s', $entityClass));
         }
 
         $mapping = $this->getMapping($entityClass);
         /**
          * @var \Ollieread\Articulate\Contracts\Entity $entity
          */
-        $entity = new $entityClass;
+        $entity = app()->make($entityClass);
 
         // Populate any default attributes if needed
         // We aren't using toArray() because some of the default values may be Arrayable
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $attributes = $mapping->getColumns()->keyBy(function (Column $column) {
-            return $column->getColumnName();
-        })->map(function (Column $column) {
-            return $column->getDefault();
-        })->merge($attributes);
+        $mapping
+            ->getColumns()
+            ->keyBy(function (Column $column) {
+                return $column->getColumnName();
+            })
+            ->map(function (Column $column) {
+                return $column->getDefault();
+            })
+            ->merge($attributes)
+            ->each(function ($value, $key) use ($mapping, $entity) {
+                $column = $mapping->getColumn($key);
 
-        /** @noinspection ForeachSourceInspection */
-        foreach ($attributes as $key => $value) {
-            $column = $mapping->getColumn($key);
+                if ($column) {
+                    $attributeName = $column->getAttributeName();
+                    $columnName    = $column->getColumnName();
 
-            if ($column) {
-                $attributeName = $column->getAttributeName();
-                $columnName    = $column->getColumnName();
+                    // If a mapping has a different column name, we want to actually set that attribute
+                    // simply because it's useful to have that data
+                    if ($columnName && $attributeName !== $columnName) {
+                        $entity->setAttribute($columnName, $value);
+                        $key = $attributeName;
+                    }
 
-                // If a mapping has a different column name, we want to actually set that attribute
-                // simply because it's useful to have that data
-                if ($columnName && $attributeName !== $columnName) {
-                    $entity->setAttribute($columnName, $value);
-                    $key = $attributeName;
+                    // If a column mapping exists, we wan't to cast it, which we don't want to do before
+                    // we do the above
+                    $value = $column->cast($value);
                 }
 
-                // If a column mapping exists, we wan't to cast it, which we don't want to do before
-                // we do the above
-                $value = $column->cast($value);
-            }
-
-            $entity->setAttribute($key, $value);
-        }
+                $entity->setAttribute($key, $value);
+            });
 
         // We call the hydrated method as a sort of event, sometimes dynamic properties will be set here
         $entity::hydrated($entity);
@@ -166,6 +168,8 @@ class EntityManager
         $entity->clean();
 
         if ($persisted) {
+            // We can assume that the entity has been 'persisted', which means that it exists in the database
+            // so we set that flag here
             $entity->setPersisted();
         }
 
@@ -180,23 +184,16 @@ class EntityManager
      */
     public function dehydrate(Entity $entity): array
     {
-        $mapping    = $this->getMapping(\get_class($entity));
-        $attributes = [];
+        $mapping = $this->getMapping(\get_class($entity));
 
-        $mapping->getColumns()->each(function (Column $column) use ($entity, &$attributes) {
-            $columnName    = $column->getColumnName();
-            $attributeName = $column->getAttributeName();
-            $getter        = 'get' . studly_case($attributeName);
+        return collect($entity->getAll())->mapWithKeys(function ($value, $key) use($mapping) {
+            $column = $mapping->getColumn($key);
 
-            if (method_exists($entity, $getter)) {
-                $attribute = $entity->{$getter}();
-            } else {
-                $attribute = $entity->get($attributeName);
+            if ($column) {
+                return $column->toDatabase($value);
             }
 
-            $attributes[$columnName] = $column->toDatabase($attribute);
+            return $value;
         });
-
-        return $attributes;
     }
 }

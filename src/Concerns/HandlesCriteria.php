@@ -85,11 +85,9 @@ trait HandlesCriteria
     protected function applyCriteria($query)
     {
         if (! $this->skipCriteria) {
-            $criteria = $this->getCriteria()->sortBy(function (Criteria $criteria) {
+            $this->getCriteria()->sortBy(function (Criteria $criteria) {
                 return $criteria->getPriority();
-            });
-
-            $criteria->each(function (Criteria $criteria) use ($query) {
+            })->each(function (Criteria $criteria) use ($query) {
                 $criteria->perform($query);
             });
         }
