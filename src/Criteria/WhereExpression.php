@@ -9,9 +9,8 @@ class WhereExpression extends BaseCriteria
      */
     protected $expression;
 
-    public function __construct(string $expression, int $priority = 0, array $validEntities = [])
+    public function __construct(string $expression)
     {
-        parent::__construct($priority, $validEntities);
         $this->expression   = $expression;
     }
 

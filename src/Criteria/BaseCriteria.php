@@ -16,10 +16,16 @@ abstract class BaseCriteria implements Criteria
      */
     protected $validEntities = [];
 
-    public function __construct(int $priority = 0, array $validEntities = [])
+    public function setPriority(int $priority = 0): self
     {
-        $this->priority      = $priority;
+        $this->priority = $priority;
+        return $this;
+    }
+
+    protected function setValidEntities(array $validEntities = []): self
+    {
         $this->validEntities = $validEntities;
+        return $this;
     }
 
     /**

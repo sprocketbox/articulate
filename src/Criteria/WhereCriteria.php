@@ -19,12 +19,11 @@ class WhereCriteria extends BaseCriteria
      */
     protected $value;
 
-    public function __construct(string $column, string $operator, $value, int $priority = 0, array $validEntities = [])
-    {
-        parent::__construct($priority, $validEntities);
+    public function __construct(string $column, string $operator, $value = null)
+    {;
         $this->column   = $column;
-        $this->operator = $operator;
-        $this->value    = $value;
+        $this->operator = $value ? $operator : '=';
+        $this->value    = $value ?? $operator;
     }
 
     /**

@@ -14,10 +14,8 @@ class OrderCriteria extends BaseCriteria
      */
     protected $direction;
 
-    public function __construct($columns, string $direction = 'desc', int $priority = 0, array $validEntities = [])
+    public function __construct($columns, string $direction = 'desc')
     {
-        parent::__construct($priority, $validEntities);
-
         $this->columns   = (array) $columns;
         $this->direction = $direction;
     }
