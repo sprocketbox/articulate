@@ -33,6 +33,16 @@ abstract class BaseColumn implements Column
     protected $dynamic = false;
 
     /**
+     * @var bool
+     */
+    protected $auto = false;
+
+    /**
+     * @var null|\Closure
+     */
+    protected $generator;
+
+    /**
      * @var mixed
      */
     protected $default;
@@ -116,7 +126,9 @@ abstract class BaseColumn implements Column
      */
     public function getDefault()
     {
-        return $this->default;
+        $default = $this->default;
+
+        return $default instanceof \Closure ? $default() : $default;
     }
 
     /**
@@ -129,5 +141,43 @@ abstract class BaseColumn implements Column
         $this->default = $default;
 
         return $this;
+    }
+
+    /**
+     * @return \Ollieread\Articulate\Columns\BaseColumn
+     */
+    public function setAutoGenerate(): self
+    {
+        $this->auto = true;
+
+        return $this;
+    }
+
+    /**
+     * @param \Closure $generator
+     *
+     * @return \Ollieread\Articulate\Columns\BaseColumn
+     */
+    public function setGenerator(\Closure $generator): self
+    {
+        $this->generator = $generator;
+
+        return $this;
+    }
+
+    /**
+     * @param array $attributes
+     *
+     * @return mixed|null
+     */
+    public function generate(array $attributes)
+    {
+        if ($this->auto && $this->generator) {
+            $generator = $this->generator;
+
+            return $generator($attributes);
+        }
+
+        return null;
     }
 }

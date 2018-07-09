@@ -25,4 +25,10 @@ interface Column
     public function getDefault();
 
     public function setDefault($default);
+
+    public function setAutoGenerate();
+
+    public function setGenerator(\Closure $generator);
+
+    public function generate(array $attributes);
 }
