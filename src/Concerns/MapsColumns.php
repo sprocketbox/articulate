@@ -17,6 +17,7 @@ use RuntimeException;
  * @method Columns\StringColumn string(string $attributeName)
  * @method Columns\TimestampColumn timestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
  * @method Columns\FloatColumn float(string $attributeName)
+ * @method Columns\UuidColumn uuid(string $attributeName)
  *
  * The following methods are for MongoDB only
  *

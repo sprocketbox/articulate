@@ -10,6 +10,8 @@ use Ollieread\Articulate\Contracts\Mapping as Contract;
 /**
  * Class Mapping
  *
+ * @mixin MapsColumns
+ *
  * @package Ollieread\Articulate
  */
 class Mapping implements Contract
