@@ -27,32 +27,6 @@ class DatabaseRepository extends EntityRepository
     use Concerns\HandlesCriteria;
 
     /**
-     * Magic method handling for dynamic functions such as getByAddress() or getOneById().
-     *
-     * @param       $name
-     * @param array $arguments
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|mixed|null
-     * @throws \RuntimeException
-     */
-    public function __call($name, array $arguments = [])
-    {
-        if (\count($arguments) > 1) {
-            throw new \InvalidArgumentException('Invalid argument count');
-        }
-
-        if (0 === strpos($name, 'getBy')) {
-            return $this->getBy(snake_case(substr($name, 5)), $arguments[0]);
-        }
-
-        if (0 === strpos($name, 'getOneBy')) {
-            return $this->getOneBy(snake_case(substr($name, 8)), $arguments[0]);
-        }
-
-        return null;
-    }
-
-    /**
      * @param null|string $entity
      *
      * @return \Ollieread\Articulate\Query\Builder
@@ -76,51 +50,6 @@ class DatabaseRepository extends EntityRepository
     }
 
     /**
-     * @return array
-     */
-    protected function getQueryCriteria(): array
-    {
-        $argCount  = \func_num_args();
-        $arguments = \func_get_args();
-
-        if ($argCount === 1 && \is_array($arguments)) {
-            $arguments = $arguments[0];
-        } else if (($argCount % 2) === 0) {
-            $keys      = array_filter($arguments, function ($value, $key) {
-                return $key === 0 || ($key % 2) === 0;
-            }, ARRAY_FILTER_USE_BOTH);
-            $values    = array_diff($arguments, $keys);
-            $arguments = array_combine($keys, $values);
-        }
-
-        $criteria = [];
-
-        if ($arguments) {
-            foreach ($arguments as $column => $value) {
-                if ($value instanceof Expression) {
-                    $criteria[] = new WhereExpression($value);
-                } else {
-                    $criteria[] = new WhereCriteria($column, '=', $value);
-                }
-            }
-        }
-
-        return $criteria;
-    }
-
-    /**
-     * Helper method for retrieving entities by a column or array of columns.
-     *
-     * @return \Ollieread\Articulate\Support\Collection
-     *
-     * @throws \RuntimeException
-     */
-    public function getBy(): Collection
-    {
-        return $this->getByCriteria(...$this->getQueryCriteria(...\func_get_args()));
-    }
-
-    /**
      * @param \Ollieread\Articulate\Contracts\Criteria ...$criteria
      *
      * @return \Ollieread\Articulate\Support\Collection
@@ -129,17 +58,6 @@ class DatabaseRepository extends EntityRepository
     {
         collect($criteria)->each([$this, 'pushCriteria']);
         return $this->applyCriteria($this->query())->get() ?? new Collection;
-    }
-
-    /**
-     * Helper method for retrieving an entity by a column or array of columns.
-     *
-     * @return null|\Ollieread\Articulate\Contracts\Entity
-     * @throws \RuntimeException
-     */
-    public function getOneBy(): ?Entity
-    {
-        return $this->getOneByCriteria(...$this->getQueryCriteria(...\func_get_args()));
     }
 
     /**
@@ -179,18 +97,18 @@ class DatabaseRepository extends EntityRepository
     {
         $keyName = $this->mapping()->getKey();
 
-        return $this->getOneBy($keyName, $identifier);
+        return $this->getOneByCriteria($keyName, $identifier);
     }
 
     /**
-     * @param int    $count
-     * @param string $pageName
+     * @param \Ollieread\Articulate\Query\Builder $query
+     * @param int                                 $count
+     * @param string                              $pageName
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    protected function paginate(int $count, string $pageName = 'page'): LengthAwarePaginatorContract
+    protected function paginate($query, int $count, string $pageName = 'page'): LengthAwarePaginatorContract
     {
-        $query     = $this->applyCriteria($this->query());
         $total     = $query->toBase()->getCountForPagination();
         $paginator = null;
 
