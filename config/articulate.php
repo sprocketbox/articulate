@@ -22,4 +22,6 @@ return [
 
     'auth' => true,
 
+    'recursive' => false,
+
 ];

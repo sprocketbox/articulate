@@ -2,10 +2,12 @@
 
 namespace Ollieread\Articulate;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as BaseProvider;
 use Ollieread\Articulate\Auth\ArticulateUserProvider;
 use Ollieread\Articulate\Contracts\Mapping as MappingContract;
+use Ollieread\Articulate\Query\MySQLGrammar;
 
 /**
  * Class ServiceProvider
@@ -28,8 +30,12 @@ class ServiceProvider extends BaseProvider
             $this->publishConfig();
         }
 
-        if (config('articulate.auth') === true) {
+        if ((bool)config('articulate.auth') === true) {
             $this->registerAuth();
+        }
+
+        if ((bool)config('articulate.recursive') === true) {
+            $this->registerRecursive();
         }
     }
 
@@ -78,6 +84,20 @@ class ServiceProvider extends BaseProvider
     {
         Auth::provider('articulate', function ($app, array $config) {
             return new ArticulateUserProvider($app['hash'], $this->entities->repository($config['entity']), $config['entity']);
+        });
+    }
+
+    private function registerRecursive(): void
+    {
+        Builder::macro('recursive', function (string $name, \Closure $closure) {
+            $this->bindings['recursive'] = [];
+            $recursive                   = $this->newQuery();
+            call_user_func($closure, $recursive);
+            $this->recursives[] = [$name, $recursive];
+            $this->addBinding($recursive->getBindings(), 'recursive');
+            $this->grammar = new MysqlGrammar();
+
+            return $this;
         });
     }
 }

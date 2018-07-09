@@ -69,6 +69,7 @@ class Builder
         'avg',
         'sum',
         'getConnection',
+        'recursive',
     ];
 
     public function __construct(QueryBuilder $query, EntityManager $entityManager)
