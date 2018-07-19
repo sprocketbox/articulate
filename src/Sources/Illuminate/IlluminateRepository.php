@@ -108,25 +108,22 @@ class IlluminateRepository extends Repository
             $keyName  = $this->mapping()->getKey();
             $keyValue = $entity->get($keyName);
             $insert   = ! $entity->isPersisted();
-            $fields   = [];
 
             // todo: Cascade saving to child entities
-            $columns = $this->mapping()->getAttributes();
-            $columns->each(function (Attribute $attribute, string $name) use ($entity, &$fields) {
-                if (! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name)) {
-                    $fields[$attribute->getName()] = $attribute->parse($entity->get($name));
-                }
+            $attributes = $this->mapping()->getAttributes();
+            $fields     = $this->manager()->dehydrate($entity, function (Attribute $attribute, string $name) use ($entity) {
+                return ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
             });
 
             if (\count($fields)) {
                 $now = Carbon::now();
 
                 if ($insert) {
-                    if (! isset($fields['created_at']) && $columns->has('created_at')) {
-                        $fields['created_at'] = $columns->get('created_at')->parse($now);
+                    if (! isset($fields['created_at']) && $attributes->has('created_at')) {
+                        $fields['created_at'] = $attributes->get('created_at')->parse($now);
                     }
-                    if (! isset($fields['updated_at']) && $columns->has('updated_at')) {
-                        $fields['updated_at'] = $columns->get('updated_at')->parse($now);
+                    if (! isset($fields['updated_at']) && $attributes->has('updated_at')) {
+                        $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
                     }
 
                     $newKeyValue = $this->query($this->entity())->insertGetId($fields);
@@ -137,8 +134,8 @@ class IlluminateRepository extends Repository
 
                     $entity->setPersisted();
                 } else {
-                    if ($columns->has('updated_at')) {
-                        $fields['updated_at'] = $columns->get('updated_at')->parse($now);
+                    if ($attributes->has('updated_at')) {
+                        $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
                     }
 
                     $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);

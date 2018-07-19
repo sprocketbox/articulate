@@ -202,7 +202,7 @@ class EntityManager
                         $attributeNames = $mapping->getAttributes()->map(function (Attribute $attribute) {
                             return $attribute->getColumnName() ?? $attribute->getName();
                         });
-                        $entity->set($attribute->getName(), $this->hydrateComponent($componentClass, $mapping, array_only($attributes, $attributeNames)));
+                        $entity->set($attribute->getName(), $this->hydrateComponent(new $componentClass($entity), $mapping, array_only($attributes, $attributeNames)));
                         $attributes = array_except($attributes, $attributeNames);
                     }
                 }
@@ -273,23 +273,43 @@ class EntityManager
     }
 
     /**
-     * @param \Sprocketbox\Articulate\Entities\Entity $entity
+     * @param \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component $hydrated
+     * @param \Closure|null                                                                        $filter
      *
      * @return array
-     * @throws \InvalidArgumentException
      */
-    public function dehydrate(Entity $entity): array
+    public function dehydrate($hydrated, \Closure $filter = null): array
     {
-        $mapping = $this->mapping(\get_class($entity));
+        if ($hydrated instanceof Entity) {
+            $mapping = $this->getEntityMapping(\get_class($hydrated));
+        } else {
+            $mapping = $this->getComponentMapping(\get_class($hydrated));
+        }
 
-        return collect($entity->getAll())->mapWithKeys(function ($value, $key) use ($mapping) {
-            $attribute = $mapping->getAttribute($key);
+        $dehydratedArray = [];
 
-            if ($attribute) {
-                return [$key => $attribute->parse($value)];
+        if ($mapping) {
+            $attributes = collect($hydrated->getAll());
+
+            if ($filter) {
+                $attributes = $attributes->filter($filter);
             }
 
-            return [$key => $value];
-        })->toArray();
+            $dehydratedArray = $attributes->mapWithKeys(function ($value, $key) use ($mapping) {
+                $attribute = $mapping->getAttribute($key);
+
+                if ($attribute) {
+                    if ($attribute->isComponent()) {
+                        return $this->dehydrate($value);
+                    }
+
+                    return [$key => $attribute->parse($value)];
+                }
+
+                return [$key => $value];
+            })->toArray();
+        }
+
+        return $dehydratedArray;
     }
 }

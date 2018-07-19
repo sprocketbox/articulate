@@ -34,18 +34,4 @@ interface Repository
      * @throws \RuntimeException
      */
     public function hydrate($result);
-
-    /**
-     * @param mixed $identifier
-     *
-     * @return null|\Sprocketbox\Handle\Entities\Entity
-     */
-    public function load($identifier);
-
-    /**
-     * @param \Sprocketbox\Articulate\Entities\Entity $entity
-     *
-     * @return null|\Sprocketbox\Handle\Entities\Entity
-     */
-    public function save(Entity $entity): ?Entity;
 }
