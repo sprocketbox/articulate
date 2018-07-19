@@ -1,10 +1,10 @@
 <?php
 
-namespace Ollieread\Articulate\Concerns;
+namespace Sprocketbox\Articulate\Concerns;
 
-use Ollieread\Articulate\Support\Collection;
+use Sprocketbox\Articulate\Support\Collection;
 use Illuminate\Support\Collection as LaravelCollection;
-use Ollieread\Articulate\Contracts\Criteria;
+use Sprocketbox\Articulate\Contracts\Criteria;
 
 trait HandlesCriteria
 {
@@ -27,7 +27,7 @@ trait HandlesCriteria
     }
 
     /**
-     * @param \Ollieread\Articulate\Contracts\Criteria|string $criteria
+     * @param \Sprocketbox\Articulate\Contracts\Criteria|string $criteria
      *
      * @return $this
      */
@@ -80,7 +80,7 @@ trait HandlesCriteria
     /**
      * @param $query
      *
-     * @return \Ollieread\Articulate\Query\Builder
+     * @return \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder
      */
     protected function applyCriteria($query)
     {

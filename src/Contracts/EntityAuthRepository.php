@@ -1,6 +1,6 @@
 <?php
 
-namespace Ollieread\Articulate\Contracts;
+namespace Sprocketbox\Articulate\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 

@@ -1,15 +1,15 @@
 <?php
 
-namespace Ollieread\Articulate\Criteria;
+namespace Sprocketbox\Articulate\Criteria;
 
-use Ollieread\Articulate\Contracts\Criteria;
+use Sprocketbox\Articulate\Contracts\Criteria;
 
 abstract class BaseCriteria implements Criteria
 {
     /**
      * @var int
      */
-    protected $priority;
+    protected $priority = 0;
 
     /**
      * @var array

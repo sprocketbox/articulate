@@ -1,6 +1,6 @@
 <?php
 
-namespace Ollieread\Articulate\Criteria;
+namespace Sprocketbox\Articulate\Criteria;
 
 class ByKey extends BaseCriteria
 {
@@ -15,7 +15,7 @@ class ByKey extends BaseCriteria
     }
 
     /**
-     * @param \Ollieread\Articulate\Query\Builder $query
+     * @param \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
      *
      * @return mixed
      */

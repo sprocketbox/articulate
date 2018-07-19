@@ -1,23 +1,25 @@
 <?php
 
-namespace Ollieread\Articulate;
+namespace Sprocketbox\Articulate;
 
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as BaseProvider;
-use Ollieread\Articulate\Auth\ArticulateUserProvider;
-use Ollieread\Articulate\Contracts\Mapping as MappingContract;
-use Ollieread\Articulate\Query\MySQLGrammar;
+use Sprocketbox\Articulate\Auth\ArticulateUserProvider;
+use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
+use Sprocketbox\Articulate\Entities\EntityMapping;
+use Sprocketbox\Articulate\Sources\Illuminate\Grammar\MySQLGrammar;
+use Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource;
 
 /**
  * Class ServiceProvider
  *
- * @package Ollieread\Articulate
+ * @package Sprocketbox\Articulate
  */
 class ServiceProvider extends BaseProvider
 {
     /**
-     * @var \Ollieread\Articulate\EntityManager
+     * @var \Sprocketbox\Articulate\EntityManager
      */
     protected $entities;
 
@@ -30,13 +32,16 @@ class ServiceProvider extends BaseProvider
             $this->publishConfig();
         }
 
-        if ((bool)config('articulate.auth') === true) {
+        if ((bool)config('articulate.extra.auth') === true) {
             $this->registerAuth();
         }
 
-        if ((bool)config('articulate.recursive') === true) {
+        if ((bool)config('articulate.extra.recursive') === true) {
             $this->registerRecursive();
         }
+
+        $this->registerSources();
+        $this->registerEntities();
     }
 
     /**
@@ -45,7 +50,7 @@ class ServiceProvider extends BaseProvider
     private function publishConfig(): void
     {
         $this->publishes([
-            __DIR__.'/../config/articulate.php' => config_path('articulate.php'),
+            __DIR__ . '/../config/articulate.php' => config_path('articulate.php'),
         ], 'config');
     }
 
@@ -61,10 +66,8 @@ class ServiceProvider extends BaseProvider
 
         $this->app->bind(MappingContract::class, function ($app, array $arguments) {
             [$entity, $connection, $table] = $arguments;
-            return new Mapping($entity, $connection, $table);
+            return new EntityMapping($entity, $connection, $table);
         });
-
-        $this->registerEntities();
     }
 
     /**
@@ -73,10 +76,10 @@ class ServiceProvider extends BaseProvider
      */
     private function registerEntities(): void
     {
-        $mappings = config('articulate.mappings', []);
+        $mappers = config('articulate.mappers', []);
 
-        foreach ($mappings as $mapping) {
-            $this->entities->register(new $mapping);
+        foreach ($mappers as $mapper) {
+            $this->entities->registerEntity(new $mapper);
         }
     }
 
@@ -90,14 +93,23 @@ class ServiceProvider extends BaseProvider
     private function registerRecursive(): void
     {
         Builder::macro('recursive', function (string $name, \Closure $closure) {
-            $this->bindings['recursive'] = [];
-            $recursive                   = $this->newQuery();
-            call_user_func($closure, $recursive);
-            $this->recursives[] = [$name, $recursive];
-            $this->addBinding($recursive->getBindings(), 'recursive');
-            $this->grammar = new MysqlGrammar();
+            // We only want to add recursive support for MySQL
+            if ($this->grammar instanceof \Illuminate\Database\Query\Grammars\MySqlGrammar) {
+                $this->bindings['recursive'] = [];
+                $recursive                   = $this->newQuery();
+                $closure($recursive);
+                $this->recursives[] = [$name, $recursive];
+                $this->addBinding($recursive->getBindings(), 'recursive');
+                $this->grammar = new MysqlGrammar();
+            }
 
             return $this;
         });
+    }
+
+    private function registerSources(): void
+    {
+        $this->entities
+            ->registerSource('illuminate', IlluminateSource::class);
     }
 }

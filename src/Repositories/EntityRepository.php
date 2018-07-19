@@ -1,29 +1,29 @@
 <?php
 
-namespace Ollieread\Articulate\Repositories;
+namespace Sprocketbox\Articulate\Repositories;
 
-use Ollieread\Articulate\Concerns;
-use Ollieread\Articulate\Contracts\EntityRepository as Contract;
-use Ollieread\Articulate\EntityManager;
-use Ollieread\Articulate\Mapping;
+use Sprocketbox\Articulate\Entities\Entity;
 
-/**
- * Class EntityRepository
- *
- * @package Ollieread\Articulate\Repositories
- */
-abstract class EntityRepository implements Contract
+class EntityRepository extends Repository
 {
-    use Concerns\HandlesEntities;
 
     /**
-     * EntityRepository constructor.
+     * @param mixed $identifier
      *
-     * @param \Ollieread\Articulate\EntityManager $manager
-     * @param \Ollieread\Articulate\Mapping       $mapping
+     * @return null|\Sprocketbox\Handle\Entities\Entity
      */
-    public function __construct(EntityManager $manager, Mapping $mapping)
+    public function load($identifier)
     {
-        $this->setManager($manager)->setMapping($mapping);
+        return null;
+    }
+
+    /**
+     * @param \Sprocketbox\Articulate\Entities\Entity $entity
+     *
+     * @return null|\Sprocketbox\Handle\Entities\Entity
+     */
+    public function save(Entity $entity): ?Entity
+    {
+        return $entity;
     }
 }

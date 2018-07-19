@@ -1,6 +1,6 @@
 <?php
 
-namespace Ollieread\Articulate\Support;
+namespace Sprocketbox\Articulate\Support;
 
 use Illuminate\Support\Collection as BaseCollection;
 

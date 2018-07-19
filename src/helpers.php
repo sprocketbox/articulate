@@ -1,8 +1,8 @@
 <?php
 
 if (! function_exists('entities')) {
-    function entities(): \Ollieread\Articulate\EntityManager
+    function entities(): \Sprocketbox\Articulate\EntityManager
     {
-        return app(\Ollieread\Articulate\EntityManager::class);
+        return app(\Sprocketbox\Articulate\EntityManager::class);
     }
 }

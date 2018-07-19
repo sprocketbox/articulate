@@ -1,6 +1,6 @@
 <?php
 
-namespace Ollieread\Articulate\Contracts;
+namespace Sprocketbox\Articulate\Contracts;
 
 interface Criteria
 {

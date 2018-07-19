@@ -1,5 +1,5 @@
 {
-  "name": "ollieread/articulate",
+  "name": "sprocketbox/articulate",
   "description": "A simple lightweight drop in to replace Eloquent",
   "type": "library",
   "license": "MIT",
@@ -7,7 +7,7 @@
   "authors": [
     {
       "name": "Ollie Read",
-      "email": "ollie@ollieslab.io"
+      "email": "ollie@sprocketbox.io"
     }
   ],
   "require": {
@@ -17,7 +17,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Ollieread\\Articulate\\": "src/"
+      "Sprocketbox\\Articulate\\": "src/"
     },
     "files": [
       "src/helpers.php"
@@ -26,7 +26,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Ollieread\\Articulate\\ServiceProvider"
+        "Sprocketbox\\Articulate\\ServiceProvider"
       ]
     }
   }

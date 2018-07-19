@@ -1,93 +1,119 @@
 <?php
 
-namespace Ollieread\Articulate;
+namespace Sprocketbox\Articulate;
 
-use Illuminate\Database\Concerns\BuildsQueries;
-use Ollieread\Articulate\Support\Collection;
+use Sprocketbox\Articulate\Components\Component;
+use Sprocketbox\Articulate\Contracts\ComponentMapping;
+use Sprocketbox\Articulate\Contracts\ComponentMapper;
+use Sprocketbox\Articulate\Contracts\EntityMapping;
+use Sprocketbox\Articulate\Contracts\Repository as RepositoryContract;
+use Sprocketbox\Articulate\Entities\Entity;
+use Sprocketbox\Articulate\Entities\EntityMapper;
+use Sprocketbox\Articulate\Event\Hydrated;
+use Sprocketbox\Articulate\Event\Hydrating;
 use Illuminate\Support\Collection as LaravelCollection;
-use Ollieread\Articulate\Contracts\Column;
-use Ollieread\Articulate\Contracts\Entity;
-use Ollieread\Articulate\Contracts\EntityMapping;
-use Ollieread\Articulate\Contracts\EntityRepository;
-use Ollieread\Articulate\Contracts\Mapping;
-use Ollieread\Articulate\Repositories\EntityRepository as BaseRepository;
+use Sprocketbox\Articulate\Contracts\Attribute;
+use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
+use Sprocketbox\Articulate\Repositories\Repository;
 
+/**
+ * Class EntityManager
+ *
+ * @mixin Concerns\HandlesMappings
+ * @mixin Concerns\HandlesSources
+ *
+ * @package Sprocketbox\Articulate
+ */
 class EntityManager
 {
-    use BuildsQueries;
-
-    /**
-     * @var LaravelCollection
-     */
-    protected $mappings;
+    use Concerns\HandlesMappings,
+        Concerns\HandlesSources;
 
     public function __construct()
     {
-        $this->mappings = new LaravelCollection;
+        $this->entityMappings    = new LaravelCollection;
+        $this->componentMappings = new LaravelCollection;
+        $this->sources           = new LaravelCollection;
     }
 
     /**
-     * @param \Ollieread\Articulate\Contracts\EntityMapping $mapping
-     *
-     * @throws \InvalidArgumentException
-     * @throws \RuntimeException
+     * @param \Sprocketbox\Articulate\Entities\EntityMapper $mapper
      */
-    public function register(EntityMapping $mapping): void
+    public function registerEntity(EntityMapper $mapper): void
     {
-        $entity     = $mapping->entity();
-        $table      = $mapping->table();
-        $connection = $mapping->connection();
+        $entity = $mapper->entity();
 
-        if ($this->mappings->has($entity)) {
-            throw new \RuntimeException('Entity already registered');
+        if ($this->hasEntityMapping($entity)) {
+            throw new \RuntimeException(sprintf('Entity %s already registered', $entity));
         }
 
-        // Create mapper
-        $mapper = app()->makeWith(Mapping::class, [$entity, $connection ?? config('database.default'), $table]);
-        $mapping->map($mapper);
+        $source = $this->getSource($mapper->source());
 
-        // Add the entity mapping
-        $this->mappings->put($entity, $mapper);
+        if (! $source) {
+            throw new \RuntimeException(sprintf('Invalid source %s for entity %s', $source, $entity));
+        }
 
-        $repository = $mapper->getRepository();
+        $mapping = $source->newMapping($entity, $mapper->source());
+        $mapper->map($mapping);
+
+        $this->registerEntityMapping($entity, $mapping);
+
+        $repository = $mapping->getRepository();
 
         // If there's a repository, and it exists
         if ($repository && class_exists($repository)) {
             // Map it for the binding
-            app()->bind($repository, function () use ($entity): EntityRepository {
+            app()->bind($repository, function () use ($entity): RepositoryContract {
                 return $this->repository($entity);
             });
         }
     }
 
     /**
-     * @param string $entity
-     *
-     * @return \Ollieread\Articulate\Contracts\Mapping
-     * @throws \InvalidArgumentException
+     * @param \Sprocketbox\Articulate\Contracts\ComponentMapper $mapper
      */
-    public function getMapping(string $entity): Mapping
+    public function registerComponent(ComponentMapper $mapper): void
     {
-        if (! $this->mappings->has($entity)) {
-            throw new \InvalidArgumentException(sprintf('Mapping not found for entity: %s', $entity));
+        $component = $mapper->component();
+
+        if ($this->hasComponentMapping($component)) {
+            throw new \RuntimeException(sprintf('Component %s already registered', $component));
         }
 
-        return $this->mappings->get($entity);
+        $mapping = app()->makeWith(ComponentMapping::class, [$component]);
+        $mapper->map($mapping);
+
+        $this->registerComponentMapping($component, $mapping);
     }
 
     /**
      * @param string $entity
      *
-     * @return null|\Ollieread\Articulate\Contracts\EntityRepository
+     * @return MappingContract
+     */
+    public function mapping(string $entity): MappingContract
+    {
+        if (! $this->hasEntityMapping($entity)) {
+            throw new \InvalidArgumentException(sprintf('Mapping not found for entity %s', $entity));
+        }
+
+        return $this->getEntityMapping($entity);
+    }
+
+    /**
+     * @param string $entity
+     *
+     * @return null|\Sprocketbox\Articulate\Contracts\Repository
      * @throws \InvalidArgumentException
      */
-    public function repository(string $entity): ?EntityRepository
+    public function repository(string $entity): ?RepositoryContract
     {
-        $mapper     = $this->getMapping($entity);
-        $repository = $mapper->getRepository() ?? BaseRepository::class;
+        $mapping    = $this->mapping($entity);
+        $source     = $this->getSource($mapping->getSource());
+        $repository = $mapping->getRepository() ?? Repository::class;
 
         if (class_exists($repository)) {
-            return new $repository($this, $mapper);
+            return new $repository($this, $mapping, $source);
         }
 
         return null;
@@ -96,79 +122,122 @@ class EntityManager
     /** @noinspection ArrayTypeOfParameterByDefaultValueInspection */
 
     /**
-     * @param string $entityClass
+     * @param string $class
      * @param array  $attributes
      *
      * @param bool   $persisted
      *
-     * @return \Ollieread\Articulate\Contracts\Entity
+     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component
      * @throws \InvalidArgumentException
      */
-    public function hydrate(string $entityClass, $attributes = [], bool $persisted = true): Entity
+    public function hydrate(string $class, $attributes = [], bool $persisted = true)
     {
+        if (! class_exists($class)) {
+            throw new \InvalidArgumentException(sprintf('Invalid class provided %s', $class));
+        }
+
+        if ($attributes instanceof \stdClass) {
+            $attributes = (array)$attributes;
+        }
+
         if ($attributes instanceof Entity) {
-            throw new \InvalidArgumentException('Entity is already hydrated');
+            // This is being thrown here instead of simply returning, because it points to something
+            // not quite working as it should, and we should address this wound instead of letting it fester
+            throw new \InvalidArgumentException('Already hydrated');
         }
 
         if (empty($attributes)) {
-            throw new \InvalidArgumentException('No attributes provided for entity hydration');
+            throw new \InvalidArgumentException('No attributes provided for hydration');
         }
 
-        if ($attributes instanceof Collection) {
-            throw new \InvalidArgumentException('Collections cannot be hydrated');
+        if ($attributes instanceof LaravelCollection) {
+            // Since a collection is essentially just a fancy array, we're going to skip the rest of this method,
+            // and pass in an arrayed version of the collection to itself. If it still doesn't work, it'll be
+            // caught by the other error clauses above
+            return $this->hydrate($class, $attributes->toArray(), $persisted);
         }
 
-        if (! class_exists($entityClass)) {
-            throw new \InvalidArgumentException(sprintf('Invalid entity class provided %s', $entityClass));
+        $hydratable = app()->make($class);
+
+        if ($hydratable instanceof Entity) {
+            $mapping = $this->getEntityMapping($class);
+
+            if (! $mapping) {
+                throw new \InvalidArgumentException(sprintf('Invalid entity %s', $class));
+            }
+
+            return $this->hydrateEntity($hydratable, $mapping, $attributes, $persisted);
         }
 
-        $mapping = $this->getMapping($entityClass);
-        /**
-         * @var \Ollieread\Articulate\Contracts\Entity $entity
-         */
-        $entity = app()->make($entityClass);
+        if ($hydratable instanceof Component) {
+            $mapping = $this->getComponentMapping($class);
 
-        // Populate any default attributes if needed
-        // We aren't using toArray() because some of the default values may be Arrayable
-        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $mapping
-            ->getColumns()
-            ->keyBy(function (Column $column) {
-                return $column->getColumnName();
-            })
-            ->map(function (Column $column) {
-                return $column->getDefault();
-            })
-            ->merge($attributes)
-            ->each(function ($value, $key) use ($mapping, $entity) {
-                $column = $mapping->getColumn($key);
+            if (! $mapping) {
+                throw new \InvalidArgumentException(sprintf('Invalid component %s', $class));
+            }
 
-                if ($column) {
-                    $attributeName = $column->getAttributeName();
-                    $columnName    = $column->getColumnName();
+            return $this->hydrateComponent($hydratable, $mapping, $attributes);
+        }
+    }
+
+    private function hydrateEntity(Entity $entity, EntityMapping $mapping, array $attributes = [], bool $persisted = true): Entity
+    {
+        $entityAttributes    = $mapping->getAttributes();
+        $componentAttributes = $entityAttributes
+            ->filter(function (Attribute $attribute) {
+                return $attribute->isComponent();
+            });
+
+        // Now lets fire the pre hydration event for ...reasons
+        Hydrating::dispatch($entity, $attributes);
+
+        $componentAttributes
+            ->each(function (Attribute $attribute) use (&$attributes, $entity) {
+                $componentClass = $attribute->getComponent();
+
+                if ($componentClass) {
+                    $mapping = $this->getComponentMapping($componentClass);
+
+                    if ($mapping) {
+                        $attributeNames = $mapping->getAttributes()->map(function (Attribute $attribute) {
+                            return $attribute->getColumnName() ?? $attribute->getName();
+                        });
+                        $entity->set($attribute->getName(), $this->hydrateComponent($componentClass, $mapping, array_only($attributes, $attributeNames)));
+                        $attributes = array_except($attributes, $attributeNames);
+                    }
+                }
+            });
+
+        collect($attributes)
+            ->each(function ($value, $key) use ($entityAttributes, $entity) {
+                $attribute = $entityAttributes->first(function (Attribute $attribute) use($key) {
+                    return $attribute->getName() === $key || $attribute->getColumnName() === $key;
+                });
+
+                if ($attribute) {
+                    $attributeName = $attribute->getName();
+                    $columnName    = $attribute->getColumnName();
 
                     // If a mapping has a different column name, we want to actually set that attribute
                     // simply because it's useful to have that data
-                    if ($columnName && $attributeName !== $columnName) {
-                        $entity->setAttribute($columnName, $value);
-                        $key = $attributeName;
+                    if ($attributeName && $columnName !== $attributeName) {
+                        $entity->set($columnName, $value);
                     }
 
-                    // If a column mapping exists, we wan't to cast it, which we don't want to do before
-                    // we do the above
-                    $value = $column->cast($value);
+                    $value = $attribute->cast($value);
                 }
 
-                $entity->setAttribute($key, $value);
+                $entity->set($key, $value);
             });
 
-        // We call the hydrated method as a sort of event, sometimes dynamic properties will be set here
-        $entity::hydrated($entity);
-        // Now that we're all done, we'll clean so that the entity doesn't appear to be dirty
+        // Now lets fire the post hydration event for ...reasons
+        Hydrated::dispatch($entity, $attributes);
+
+        // Now that we're all done, we'll clean the entity so that it doesn't appear to be dirty
         $entity->clean();
 
         if ($persisted) {
-            // We can assume that the entity has been 'persisted', which means that it exists in the database
+            // We can assume that the entity has been 'persisted', which means that it exists in the datasource
             // so we set that flag here
             $entity->setPersisted();
         }
@@ -176,24 +245,51 @@ class EntityManager
         return $entity;
     }
 
+    public function hydrateComponent(Component $component, ComponentMapping $mapping, $attributes = []): Component
+    {
+        $componentAttributes = $mapping->getAttributes();
+
+        collect($attributes)
+            ->each(function ($value, $key) use ($componentAttributes, $component) {
+                $attribute = $componentAttributes->first(function (Attribute $attribute) use($key) {
+                    return $attribute->getName() === $key || $attribute->getColumnName() === $key;
+                });
+
+                if ($attribute) {
+                    $attributeName = $attribute->getName();
+                    $columnName    = $attribute->getColumnName();
+
+                    // If a mapping has a different column name, we want to actually set that attribute
+                    // simply because it's useful to have that data
+                    if ($attributeName && $columnName !== $attributeName) {
+                        $component->set($columnName, $value);
+                    }
+
+                    $component->set($attributeName, $value);
+                }
+            });
+
+        return $component;
+    }
+
     /**
-     * @param \Ollieread\Articulate\Contracts\Entity $entity
+     * @param \Sprocketbox\Articulate\Entities\Entity $entity
      *
      * @return array
      * @throws \InvalidArgumentException
      */
     public function dehydrate(Entity $entity): array
     {
-        $mapping = $this->getMapping(\get_class($entity));
+        $mapping = $this->mapping(\get_class($entity));
 
-        return collect($entity->getAll())->mapWithKeys(function ($value, $key) use($mapping) {
-            $column = $mapping->getColumn($key);
+        return collect($entity->getAll())->mapWithKeys(function ($value, $key) use ($mapping) {
+            $attribute = $mapping->getAttribute($key);
 
-            if ($column) {
-                return $column->toDatabase($value);
+            if ($attribute) {
+                return [$key => $attribute->parse($value)];
             }
 
-            return $value;
-        });
+            return [$key => $value];
+        })->toArray();
     }
 }

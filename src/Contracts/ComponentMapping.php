@@ -11,41 +11,12 @@ use Illuminate\Support\Collection;
  * 
  * @package Sprocketbox\Articulate\Contracts
  */
-interface EntityMapping
+interface ComponentMapping
 {
     /**
      * @return string
      */
-    public function getEntity(): string;
-
-    /**
-     * @return string
-     */
-    public function getSource(): string;
-
-    /**
-     * @return null|mixed
-     */
-    public function getKey(): string;
-
-    /**
-     * @param string $key
-     *
-     * @return \Sprocketbox\Articulate\Contracts\EntityMapping
-     */
-    public function setKey(string $key);
-
-    /**
-     * @return null|string
-     */
-    public function getRepository(): ?string;
-
-    /**
-     * @param string $repository
-     *
-     * @return \Sprocketbox\Articulate\Contracts\EntityMapping
-     */
-    public function setRepository(string $repository);
+    public function getComponent(): string;
 
     /**
      * @return \Illuminate\Support\Collection

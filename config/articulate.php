@@ -2,26 +2,41 @@
 
 return [
 
-    'mappings' => [
+    'mappers' => [
 
     ],
 
-    'columns' => [
-        'bool'      => \Ollieread\Articulate\Columns\BoolColumn::class,
-        'entity'    => \Ollieread\Articulate\Columns\EntityColumn::class,
-        'int'       => \Ollieread\Articulate\Columns\IntColumn::class,
-        'json'      => \Ollieread\Articulate\Columns\JsonColumn::class,
-        'string'    => \Ollieread\Articulate\Columns\StringColumn::class,
-        'timestamp' => \Ollieread\Articulate\Columns\TimestampColumn::class,
-        'float'     => \Ollieread\Articulate\Columns\FloatColumn::class,
-        'text'      => \Ollieread\Articulate\Columns\TextColumn::class,
-        //'object_id'   => \Ollieread\Articulate\Columns\MongoDB\ObjectIdColumn::class,
-        //'subdocument' => \Ollieread\Articulate\Columns\MongoDB\SubdocumentColumn::class,
-        //'utc'         => \Ollieread\Articulate\Columns\MongoDB\UtcColumn::class,
+    'attributes' => [
+        'bool'      => \Sprocketbox\Articulate\Attributes\BoolAttribute::class,
+        'entity'    => \Sprocketbox\Articulate\Attributes\EntityAttribute::class,
+        'int'       => \Sprocketbox\Articulate\Attributes\IntAttribute::class,
+        'json'      => \Sprocketbox\Articulate\Attributes\JsonAttribute::class,
+        'string'    => \Sprocketbox\Articulate\Attributes\StringAttribute::class,
+        'timestamp' => \Sprocketbox\Articulate\Attributes\TimestampAttribute::class,
+        'float'     => \Sprocketbox\Articulate\Attributes\FloatAttribute::class,
+        'text'      => \Sprocketbox\Articulate\Attributes\TextAttribute::class,
+        //'object_id'   => \Sprocketbox\Articulate\Attributes\MongoDB\ObjectIdColumn::class,
+        //'subdocument' => \Sprocketbox\Articulate\Attributes\MongoDB\SubdocumentColumn::class,
+        //'utc'         => \Sprocketbox\Articulate\Attributes\MongoDB\UtcColumn::class,
     ],
 
-    'auth' => true,
+    'extra' => [
+        /*
+         * Whether or not to enable the articulate authentication driver
+         */
+        'auth'      => true,
 
-    'recursive' => false,
+        /*
+         * Whether or not to enable the query builder mixin for recursive ctes
+         */
+        'recursive' => false,
+    ],
+
+    'sources' => [
+
+        'illuminate' => [
+        ],
+
+    ],
 
 ];

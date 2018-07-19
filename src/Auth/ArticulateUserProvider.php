@@ -1,11 +1,11 @@
 <?php
 
-namespace Ollieread\Articulate\Auth;
+namespace Sprocketbox\Articulate\Auth;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Hashing\Hasher;
-use Ollieread\Articulate\Contracts\EntityAuthRepository;
+use Sprocketbox\Articulate\Contracts\EntityAuthRepository;
 
 class ArticulateUserProvider implements UserProvider
 {
@@ -18,7 +18,7 @@ class ArticulateUserProvider implements UserProvider
     protected $hasher;
 
     /**
-     * @var \Ollieread\Articulate\Contracts\EntityAuthRepository
+     * @var \Sprocketbox\Articulate\Entities\EntityAuthRepository
      */
     protected $repository;
 

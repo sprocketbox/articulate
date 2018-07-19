@@ -1,6 +1,6 @@
 <?php
 
-namespace Ollieread\Articulate\Concerns\MongoDB;
+namespace Sprocketbox\Articulate\Concerns\MongoDB;
 
 use MongoDB\BSON\ObjectId;
 

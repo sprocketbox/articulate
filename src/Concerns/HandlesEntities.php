@@ -1,10 +1,11 @@
 <?php
 
-namespace Ollieread\Articulate\Concerns;
+namespace Sprocketbox\Articulate\Concerns;
 
-use Ollieread\Articulate\Support\Collection;
-use Ollieread\Articulate\Contracts\Mapping;
-use Ollieread\Articulate\EntityManager;
+use Sprocketbox\Articulate\Contracts\Source;
+use Sprocketbox\Articulate\Support\Collection;
+use Sprocketbox\Articulate\Contracts\EntityMapping;
+use Sprocketbox\Articulate\EntityManager;
 
 trait HandlesEntities
 {
@@ -14,17 +15,22 @@ trait HandlesEntities
     private $_entity;
 
     /**
-     * @var \Ollieread\Articulate\EntityManager
+     * @var \Sprocketbox\Articulate\EntityManager
      */
     private $_manager;
 
     /**
-     * @var \Ollieread\Articulate\Contracts\Mapping
+     * @var \Sprocketbox\Articulate\Contracts\EntityMapping
      */
     private $_mapping;
 
     /**
-     * @return \Ollieread\Articulate\EntityManager
+     * @var \Sprocketbox\Articulate\Contracts\Source
+     */
+    private $_source;
+
+    /**
+     * @return \Sprocketbox\Articulate\EntityManager
      */
     public function manager(): EntityManager
     {
@@ -32,9 +38,9 @@ trait HandlesEntities
     }
 
     /**
-     * @return \Ollieread\Articulate\Contracts\Mapping
+     * @return \Sprocketbox\Articulate\Contracts\EntityMapping
      */
-    public function mapping(): Mapping
+    public function mapping(): EntityMapping
     {
         return $this->_mapping;
     }
@@ -45,6 +51,14 @@ trait HandlesEntities
     public function entity(): string
     {
         return $this->_entity;
+    }
+
+    /**
+     * @return \Sprocketbox\Articulate\Contracts\Source
+     */
+    public function source(): Source
+    {
+        return $this->_source;
     }
 
     /**
@@ -60,7 +74,7 @@ trait HandlesEntities
     }
 
     /**
-     * @param \Ollieread\Articulate\EntityManager $manager
+     * @param \Sprocketbox\Articulate\EntityManager $manager
      *
      * @return $this
      */
@@ -72,14 +86,26 @@ trait HandlesEntities
     }
 
     /**
-     * @param \Ollieread\Articulate\Contracts\Mapping $mapping
+     * @param \Sprocketbox\Articulate\Contracts\EntityMapping $mapping
      *
      * @return $this
      */
-    protected function setMapping(Mapping $mapping): self
+    protected function setMapping(EntityMapping $mapping): self
     {
         $this->_mapping = $mapping;
         $this->setEntity($mapping->getEntity());
+
+        return $this;
+    }
+
+    /**
+     * @param \Sprocketbox\Articulate\Contracts\Source $source
+     *
+     * @return \Sprocketbox\Articulate\Concerns\HandlesEntities
+     */
+    protected function setSource(Source $source): self
+    {
+        $this->_source = $source;
 
         return $this;
     }
@@ -89,7 +115,7 @@ trait HandlesEntities
      *
      * @param null|string $entity
      *
-     * @return null|\Ollieread\Articulate\Contracts\Entity|static|\Ollieread\Articulate\Support\Collection
+     * @return null|\Sprocketbox\Articulate\Entities\Entity|static|\Sprocketbox\Articulate\Support\Collection
      */
     public function hydrate($result, ?string $entity = null)
     {
