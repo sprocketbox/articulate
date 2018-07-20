@@ -10,7 +10,6 @@ use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
 use Sprocketbox\Articulate\Entities\EntityMapping;
 use Sprocketbox\Articulate\Sources\Illuminate\Grammar\MySQLGrammar;
 use Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource;
-use Sprocketbox\Articulate\Sources\Respite\RespiteSource;
 
 /**
  * Class ServiceProvider
@@ -111,8 +110,10 @@ class ServiceProvider extends BaseProvider
 
     private function registerSources(): void
     {
-        $this->entities
-            ->registerSource('illuminate', IlluminateSource::class)
-            ->registerSource('respite', RespiteSource::class);
+        $sources = config('articulate.sources', []);
+
+        foreach ($sources as $ident => $source) {
+            $this->entities->registerSource($ident, $source);
+        }
     }
 }

@@ -34,8 +34,8 @@ return [
 
     'sources' => [
 
-        'illuminate' => [
-        ],
+        'illuminate' => \Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource::class,
+        //'respite'    => \Sprocketbox\Articulate\Sources\Respite\RespiteSource::class,
 
     ],
 
