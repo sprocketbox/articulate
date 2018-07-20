@@ -1,0 +1,18 @@
+site_name: Articulate
+pages:
+  - Introduction: index.md
+  - Guides:
+    - Setup: guides/setup.md
+    - Getting Started: guides/getting-started.md
+  - Breakdown:
+    - Entities: breakdown/entities.md
+    - Mappers: breakdown/mappers.md
+    - Mappings: breakdown/mappings.md
+    - Attributes: breakdown/attributes.md
+    - Repostiories: breakdown/repositories.md
+    - Sources: breakdown/sources.md
+    - Components: breakdown/components.md
+  - Sources:
+    - Illuminate: sources/illuminate.md
+    - Respite: sources/respite.md
+theme: readthedocs

@@ -13,8 +13,7 @@
   "require": {
     "php": "^7.2",
     "laravel/framework": "~5.6",
-    "ramsey/uuid": "^3.7",
-    "sprocketbox/respite": "dev-develop"
+    "ramsey/uuid": "^3.7"
   },
   "autoload": {
     "psr-4": {
@@ -30,5 +29,8 @@
         "Sprocketbox\\Articulate\\ServiceProvider"
       ]
     }
+  },
+  "suggest": {
+    "sprocketbox/respite": "Allows for the usage of RESTful APIs as a data source"
   }
 }
