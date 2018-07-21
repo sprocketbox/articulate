@@ -2,9 +2,18 @@
 
 namespace Sprocketbox\Articulate\Sources\Respite;
 
+use Sprocketbox\Articulate\Contracts\Criteria;
+use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\Repositories\Repository;
-use Sprocketbox\Respite\Request\Builder;
+use Sprocketbox\Articulate\Support\Collection;
 
+/**
+ * Class RespiteRepository
+ *
+ * @method \Sprocketbox\Articulate\Sources\Respite\RespiteBuilder applyCriteria(RespiteBuilder $query)
+ *
+ * @package Sprocketbox\Articulate\Sources\Respite
+ */
 class RespiteRepository extends Repository
 {
     /**
@@ -16,31 +25,24 @@ class RespiteRepository extends Repository
     }
 
     /**
-     * @param \Sprocketbox\Respite\Request\Builder $builder
+     * @param \Sprocketbox\Articulate\Contracts\Criteria ...$criteria
      *
-     * @param null|string                          $key
-     *
-     * @return null|\Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return \Sprocketbox\Articulate\Support\Collection
      */
-    protected function getOne(Builder $builder, ?string $key = null)
+    public function getByCriteria(Criteria... $criteria): Collection
     {
-        $results = $builder->contents();
-
-        return $this->hydrate($key ? data_get($results, $key) : $results);
+        collect($criteria)->each([$this, 'pushCriteria']);
+        return $this->applyCriteria($this->builder())->many() ?? new Collection;
     }
 
     /**
-     * @param \Sprocketbox\Respite\Request\Builder $builder
-     * @param null|string                          $key
+     * @param \Sprocketbox\Articulate\Contracts\Criteria ...$criteria
      *
-     * @return null|\Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return null|\Sprocketbox\Articulate\Entities\Entity
      */
-    protected function get(Builder $builder, ?string $key = null)
+    public function getOneByCriteria(Criteria... $criteria): ?Entity
     {
-        $results = $builder->contents();
-
-        return $this->hydrate(collect($key ? data_get($results, $key) : $results));
+        collect($criteria)->each([$this, 'pushCriteria']);
+        return $this->applyCriteria($this->builder())->one();
     }
 }

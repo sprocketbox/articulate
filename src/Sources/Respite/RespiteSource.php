@@ -25,9 +25,8 @@ class RespiteSource implements Source
          * @var \Sprocketbox\Articulate\Sources\Respite\RespiteEntityMapping $mapping
          */
         [$entity, $mapping] = $arguments;
-        $provider = $this->respite()->for($mapping->getProvider());
 
-        return (new RespiteBuilder($provider, $provider->newBuilder(), entities()))->setEntity($entity ?? $mapping->getEntity());
+        return (new RespiteBuilder($this->respite()->for($mapping->getProvider()), entities()))->setEntity($entity ?? $mapping->getEntity());
     }
 
     public function respite()

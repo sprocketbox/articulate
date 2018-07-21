@@ -8,13 +8,23 @@ use Sprocketbox\Articulate\Support\Collection;
 use Sprocketbox\Respite\Contracts\Provider;
 use Sprocketbox\Respite\Request\Builder;
 
+/**
+ * Class RespiteBuilder
+ *
+ * @mixin \Sprocketbox\Respite\Request\Builder
+ *
+ * @method RespiteBuilder get(string $uri, array $parameters = [])
+ * @method RespiteBuilder post(string $uri, array $parameters = [])
+ * @method RespiteBuilder delete(string $uri, array $parameters = [])
+ * @method RespiteBuilder patch(string $uri, array $parameters = [])
+ * @method RespiteBuilder headers(array $headers = [])
+ * @method RespiteBuilder header(string $header, $value)
+ * @method RespiteBuilder body(array $body = [])
+ *
+ * @package Sprocketbox\Articulate\Sources\Respite
+ */
 class RespiteBuilder
 {
-    /**
-     * @var \Sprocketbox\Respite\Contracts\Provider
-     */
-    protected $provider;
-
     /**
      * @var \Sprocketbox\Respite\Request\Builder
      */
@@ -30,10 +40,10 @@ class RespiteBuilder
      */
     protected $manager;
 
-    public function __construct(Provider $provider, Builder $builder, EntityManager $entityManager)
+    public function __construct(Builder $builder, EntityManager $entityManager)
     {
-        $this->provider = $provider;
-        $this->builder  = $builder;
+        $this->builder = $builder;
+        $this->manager = $entityManager;
     }
 
     protected function newCollection($items = [])
@@ -59,13 +69,44 @@ class RespiteBuilder
         return new $entityClass;
     }
 
-    public function __call($name, $arguments)
+    public function __call($name, $arguments): self
     {
-        return $this->builder->{$name}(...$arguments);
+        $this->builder->{$name}(...$arguments);
+        return $this;
     }
 
     public function toBase()
     {
         return $this->builder;
+    }
+
+    public function many(?string $key = null)
+    {
+        $results = $this->builder->contents($key);
+        $results = new Collection($results);
+
+        if ($results && $results->count()) {
+            return $results->map(function ($result) {
+                return $this->manager->hydrate($this->getEntity(), $result);
+            });
+        }
+
+        return $results;
+    }
+
+    /**
+     * @param null|string $key
+     *
+     * @return null|\Sprocketbox\Articulate\Entities\Entity
+     */
+    public function one(?string $key = null)
+    {
+        $results = $this->builder->contents($key);
+
+        if ($results) {
+            return $this->manager->hydrate($this->getEntity(), $results);
+        }
+
+        return null;
     }
 }
