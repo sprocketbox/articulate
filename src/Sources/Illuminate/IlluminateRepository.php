@@ -102,7 +102,7 @@ class IlluminateRepository extends Repository
      * @return \Sprocketbox\Articulate\Entities\Entity
      * @throws \RuntimeException
      */
-    public function save(Entity $entity): ?Entity
+    public function persist(Entity $entity): ?Entity
     {
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();
@@ -111,9 +111,7 @@ class IlluminateRepository extends Repository
 
             // todo: Cascade saving to child entities
             $attributes = $this->mapping()->getAttributes();
-            $fields     = $this->manager()->dehydrate($entity, function (Attribute $attribute, string $name) use ($entity) {
-                return ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
-            });
+            $fields = $this->getDirty($entity);
 
             if (\count($fields)) {
                 $now = Carbon::now();
