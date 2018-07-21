@@ -4,7 +4,7 @@ namespace Sprocketbox\Articulate\Contracts;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 
-interface EntityAuthRepository
+interface AuthRepository
 {
     /**
      * Retrieve a user by their unique identifier.

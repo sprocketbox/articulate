@@ -5,7 +5,7 @@ namespace Sprocketbox\Articulate\Auth;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Contracts\Hashing\Hasher;
-use Sprocketbox\Articulate\Contracts\EntityAuthRepository;
+use Sprocketbox\Articulate\Contracts\AuthRepository;
 
 class ArticulateUserProvider implements UserProvider
 {
@@ -18,7 +18,7 @@ class ArticulateUserProvider implements UserProvider
     protected $hasher;
 
     /**
-     * @var \Sprocketbox\Articulate\Entities\EntityAuthRepository
+     * @var \Sprocketbox\Articulate\Contracts\AuthRepository
      */
     protected $repository;
 
@@ -27,7 +27,7 @@ class ArticulateUserProvider implements UserProvider
      */
     protected $entity;
 
-    public function __construct(Hasher $hasher, EntityAuthRepository $repository, string $entity)
+    public function __construct(Hasher $hasher, AuthRepository $repository, string $entity)
     {
         $this->hasher     = $hasher;
         $this->repository = $repository;

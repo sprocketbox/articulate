@@ -4,6 +4,7 @@ namespace Sprocketbox\Articulate\Concerns;
 
 use Sprocketbox\Articulate\Contracts\Source;
 use Sprocketbox\Articulate\Support\Collection;
+use Illuminate\Support\Collection as LaravelCollection;
 use Sprocketbox\Articulate\Contracts\EntityMapping;
 use Sprocketbox\Articulate\EntityManager;
 
@@ -121,10 +122,10 @@ trait HandlesEntities
     {
         $entity = $entity ?? $this->entity();
 
-        if ($result instanceof Collection) {
-            return $result->map(function ($row) use ($entity) {
+        if ($result instanceof LaravelCollection) {
+            return new Collection($result->map(function ($row) use ($entity) {
                 return $this->hydrate($row, $entity);
-            });
+            })->toArray());
         }
 
         return $this->manager()->hydrate($entity, $result);

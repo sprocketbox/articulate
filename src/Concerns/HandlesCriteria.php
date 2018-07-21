@@ -80,7 +80,7 @@ trait HandlesCriteria
     /**
      * @param $query
      *
-     * @return \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder
+     * @return mixed
      */
     protected function applyCriteria($query)
     {
