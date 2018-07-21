@@ -15,6 +15,7 @@ return [
         'timestamp' => \Sprocketbox\Articulate\Attributes\TimestampAttribute::class,
         'float'     => \Sprocketbox\Articulate\Attributes\FloatAttribute::class,
         'text'      => \Sprocketbox\Articulate\Attributes\TextAttribute::class,
+        'array'     => \Sprocketbox\Articulate\Attributes\ArrayAttribute::class,
         //'object_id'   => \Sprocketbox\Articulate\Attributes\MongoDB\ObjectIdColumn::class,
         //'subdocument' => \Sprocketbox\Articulate\Attributes\MongoDB\SubdocumentColumn::class,
         //'utc'         => \Sprocketbox\Articulate\Attributes\MongoDB\UtcColumn::class,
