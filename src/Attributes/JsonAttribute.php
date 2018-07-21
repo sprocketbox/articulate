@@ -9,12 +9,12 @@ class JsonAttribute extends BaseAttribute
         return parent::getDefault() ?? [];
     }
 
-    public function cast($value)
+    public function cast($value, array $data = [])
     {
         return $value ? json_decode($value, true) : $this->getDefault();
     }
 
-    public function parse($value): string
+    public function parse($value, array $data = []): string
     {
         return json_encode($value);
     }

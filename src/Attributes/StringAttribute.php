@@ -11,20 +11,22 @@ class StringAttribute extends BaseAttribute
 {
     /**
      * @param string $value
+     * @param array  $data
      *
      * @return string
      */
-    public function cast($value): ?string
+    public function cast($value, array $data = []): ?string
     {
         return $value;
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return string
      */
-    public function parse($value): string
+    public function parse($value, array $data = []): string
     {
         return (string) $value;
     }

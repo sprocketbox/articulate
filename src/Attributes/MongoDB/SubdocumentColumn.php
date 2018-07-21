@@ -34,12 +34,12 @@ class SubdocumentColumn extends BaseAttribute
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return null|\Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection|null
-     * @throws \RuntimeException
      */
-    public function cast($value)
+    public function cast($value, array $data = [])
     {
         if (! $value || $value instanceof $this->entityClass) {
             return $value;
@@ -59,12 +59,12 @@ class SubdocumentColumn extends BaseAttribute
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return array|null
-     * @throws \RuntimeException
      */
-    public function parse($value): array
+    public function parse($value, array $data = []): array
     {
         if ($this->multiple && $value instanceof Collection) {
             return $value->map(function ($item) {

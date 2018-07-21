@@ -43,19 +43,19 @@ class EntityAttribute extends BaseAttribute
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return null|\Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection|null
-     * @throws \RuntimeException
      */
-    public function cast($value)
+    public function cast($value, array $data = [])
     {
         if (! $value || $value instanceof $this->entityClass) {
             return $value;
         }
 
         if (is_scalar($value)) {
-            $repository = app(EntityManager::class)->repository($this->entityClass);
+            $repository = entities()->repository($this->entityClass);
 
             if ($this->load && $repository) {
                 return $repository->load($value);
@@ -78,18 +78,18 @@ class EntityAttribute extends BaseAttribute
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return string|null
-     * @throws \RuntimeException
      */
-    public function parse($value): ?string
+    public function parse($value, array $data = []): ?string
     {
         if ($this->multiple) {
             return null;
         }
 
-        $mapping = app(EntityManager::class)->getMapping($this->entityClass);
+        $mapping = entities()->getEntityMapping($this->entityClass);
 
         return $value instanceof Entity ? $value->get($mapping->getKey()) : $value;
     }

@@ -30,21 +30,22 @@ class TimestampAttribute extends BaseAttribute
 
     /**
      * @param string $value
+     * @param array  $data
      *
      * @return \Carbon\Carbon
-     * @throws \InvalidArgumentException
      */
-    public function cast($value): ?Carbon
+    public function cast($value, array $data = []): ?Carbon
     {
         return $value ? Carbon::createFromFormat($this->format, (string) $value) : null;
     }
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return string
      */
-    public function parse($value): ?string
+    public function parse($value, array $data = []): ?string
     {
         /**
          * @var \Carbon\Carbon $value

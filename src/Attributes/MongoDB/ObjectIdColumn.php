@@ -9,17 +9,17 @@ class ObjectIdColumn extends BaseAttribute
 {
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return \MongoDB\BSON\ObjectId
-     * @throws \InvalidArgumentException
      */
-    public function cast($value)
+    public function cast($value, array $data = [])
     {
         return new ObjectId($value);
     }
 
-    public function parse($value)
+    public function parse($value, array $data = [])
     {
         return $value;
     }

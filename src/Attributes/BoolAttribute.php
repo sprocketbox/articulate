@@ -6,16 +6,17 @@ class BoolAttribute extends BaseAttribute
 {
 
     /**
-     * @param $value
+     * @param       $value
+     * @param array $data
      *
      * @return bool
      */
-    public function cast($value): bool
+    public function cast($value, array $data = []): bool
     {
         return (bool) $value;
     }
 
-    public function parse($value): int
+    public function parse($value, array $data = []): int
     {
         return (int) $value;
     }

@@ -21,16 +21,14 @@ class ComponentAttribute extends BaseAttribute
         $this->componentClass = $componentClass;
     }
 
-    public function cast($value)
+    public function cast($value, array $data = [])
     {
         if (! $value || $value instanceof $this->componentClass) {
             return $value;
         }
-
-
     }
 
-    public function parse($value)
+    public function parse($value, array $data = [])
     {
         // TODO: Implement parse() method.
     }

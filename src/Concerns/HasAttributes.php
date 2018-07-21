@@ -1,6 +1,7 @@
 <?php
 
 namespace Sprocketbox\Articulate\Concerns;
+use Sprocketbox\Articulate\Contracts\Attributeable;
 
 /**
  * Trait HasAttributes
@@ -18,6 +19,11 @@ trait HasAttributes
      * @var array
      */
     private $_dirty = [];
+
+    /**
+     * @var array
+     */
+    private $_attributeables = [];
 
     /**
      * @param $name
@@ -42,9 +48,9 @@ trait HasAttributes
 
         if (method_exists($this, $methodName)) {
             $this->{$methodName}();
+        } else {
+            $this->setAttribute($attribute, $value);
         }
-
-        $this->setAttribute($attribute, $value);
     }
 
     /**
@@ -123,7 +129,19 @@ trait HasAttributes
      */
     public function isDirty(?string $column = null): bool
     {
-        return $column ? \in_array($column, $this->_dirty, true) : \count($this->_dirty) > 0;
+        $dirty = $column ? \in_array($column, $this->_dirty, true) : \count($this->_dirty) > 0;
+
+        if ($dirty) {
+            return true;
+        }
+
+        foreach ($this->_attributes as $key => $value) {
+            if ($value instanceof Attributeable && $value->isDirty($column)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -132,6 +150,12 @@ trait HasAttributes
     public function clean(): void
     {
         $this->_dirty = [];
+
+        foreach ($this->_attributes as $key => $value) {
+            if ($value instanceof Attributeable) {
+                $value->clean();
+            }
+        }
     }
 
     /**

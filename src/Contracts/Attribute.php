@@ -4,9 +4,9 @@ namespace Sprocketbox\Articulate\Contracts;
 
 interface Attribute
 {
-    public function cast($value);
+    public function cast($value, array $data = []);
 
-    public function parse($value);
+    public function parse($value, array $data = []);
 
     public function getColumnName(): string;
 
