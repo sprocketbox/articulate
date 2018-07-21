@@ -3,6 +3,7 @@
 namespace Sprocketbox\Articulate\Components;
 
 use Sprocketbox\Articulate\Concerns;
+use Sprocketbox\Articulate\Contracts\Attributeable;
 use Sprocketbox\Articulate\Entities\Entity;
 
 /**
@@ -10,7 +11,7 @@ use Sprocketbox\Articulate\Entities\Entity;
  *
  * @package Sprocketbox\Articulate\Components
  */
-abstract class Component implements \ArrayAccess, \JsonSerializable
+abstract class Component implements Attributeable, \ArrayAccess, \JsonSerializable
 {
     use Concerns\HasAttributes;
 
