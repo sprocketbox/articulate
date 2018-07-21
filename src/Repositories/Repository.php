@@ -2,9 +2,11 @@
 
 namespace Sprocketbox\Articulate\Repositories;
 
+use Sprocketbox\Articulate\Contracts\Attribute;
 use Sprocketbox\Articulate\Contracts\Source;
 use Sprocketbox\Articulate\Concerns;
 use Sprocketbox\Articulate\Contracts\Repository as Contract;
+use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\EntityManager;
 use Sprocketbox\Articulate\Entities\EntityMapping;
 
@@ -27,5 +29,12 @@ abstract class Repository implements Contract
     public function __construct(EntityManager $manager, EntityMapping $mapping, Source $source)
     {
         $this->setManager($manager)->setMapping($mapping)->setSource($source);
+    }
+
+    protected function getDirty(Entity $entity)
+    {
+        return $this->manager()->dehydrate($entity, function (Attribute $attribute, string $name) use ($entity) {
+            return ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
+        });
     }
 }
