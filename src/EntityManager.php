@@ -179,6 +179,7 @@ class EntityManager
         if ($mapping instanceof EntityMapping) {
             $entity        = true;
             $attributeable = $mapping->make($data);
+            $class         = \get_class($attributeable);
 
             if ($mapping->hasMultipleInheritance()) {
                 $attributes = $attributes->filter(function (Attribute $attribute) use ($class) {
