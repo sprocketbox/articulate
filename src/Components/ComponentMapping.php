@@ -50,4 +50,10 @@ class ComponentMapping implements Contract
     {
         return $this->component;
     }
+
+    public function make(...$arguments)
+    {
+        $entityClass = $this->getComponent();
+        return new $entityClass(...$arguments);
+    }
 }

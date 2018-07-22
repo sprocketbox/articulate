@@ -6,7 +6,9 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider as BaseProvider;
 use Sprocketbox\Articulate\Auth\ArticulateUserProvider;
-use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
+use Sprocketbox\Articulate\Components\ComponentMapping;
+use Sprocketbox\Articulate\Contracts\EntityMapping as EntityMappingContract;
+use Sprocketbox\Articulate\Contracts\ComponentMapping as ComponentMappingContract;
 use Sprocketbox\Articulate\Entities\EntityMapping;
 use Sprocketbox\Articulate\Sources\Illuminate\Grammar\MySQLGrammar;
 use Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource;
@@ -63,9 +65,14 @@ class ServiceProvider extends BaseProvider
         $this->app->instance(EntityManager::class, $this->entities);
         $this->app->instance('entities', $this->entities);
 
-        $this->app->bind(MappingContract::class, function ($app, array $arguments) {
-            [$entity, $connection, $table] = $arguments;
-            return new EntityMapping($entity, $connection, $table);
+        $this->app->bind(EntityMappingContract::class, function ($app, array $arguments) {
+            [$entity, $source] = $arguments;
+            return new EntityMapping($entity, $source);
+        });
+
+        $this->app->bind(ComponentMappingContract::class, function ($app, array $arguments) {
+            [$name] = $arguments;
+            return new ComponentMapping($name);
         });
 
         $this->registerSources();

@@ -42,6 +42,16 @@ class EntityMapping implements Contract
      */
     protected $source;
 
+    /**
+     * @var null|\Closure
+     */
+    protected $inheritenceCase;
+
+    /**
+     * @var array
+     */
+    protected $childClasses = [];
+
     public function __construct(string $entity, string $source)
     {
         $this->entity     = $entity;
@@ -117,5 +127,55 @@ class EntityMapping implements Contract
         $this->repository = $repository;
 
         return $this;
+    }
+
+    public function make(...$arguments)
+    {
+        $entityClass = $this->getEntity();
+
+        if ($this->hasMultipleInheritance()) {
+            $inheritance = $this->inheritenceCase;
+            $entityClass = $inheritance(...$arguments);
+        }
+
+        return new $entityClass(...$arguments);
+    }
+
+    /**
+     * @param \Closure $case
+     *
+     * @return \Sprocketbox\Articulate\Entities\EntityMapping
+     */
+    public function setMultipleInheritance(\Closure $case): self
+    {
+        $this->inheritenceCase = $case;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasMultipleInheritance(): bool
+    {
+        return null !== $this->inheritenceCase;
+    }
+
+    /**
+     * @param string ...$childEntities
+     *
+     * @return \Sprocketbox\Articulate\Entities\EntityMapping
+     */
+    public function setChildClasses(string ...$childEntities): self
+    {
+        $this->childClasses = $childEntities;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getChildClasses(): array
+    {
+        return $this->childClasses;
     }
 }

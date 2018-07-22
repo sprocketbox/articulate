@@ -65,4 +65,18 @@ interface EntityMapping
      * @return null|\Sprocketbox\Articulate\Contracts\Attribute
      */
     public function getAttribute(string $column): ?Attribute;
+
+    /**
+     * @return \Sprocketbox\Articulate\Contracts\EntityMapping
+     */
+    public function setMultipleInheritance(\Closure $case);
+
+    /**
+     * @return bool
+     */
+    public function hasMultipleInheritance(): bool;
+
+    public function setChildClasses(string ...$childEntities);
+
+    public function getChildClasses(): array;
 }

@@ -2,9 +2,7 @@
 
 namespace Sprocketbox\Articulate;
 
-use Illuminate\Support\Collection;
-use Sprocketbox\Articulate\Components\Component;
-use Sprocketbox\Articulate\Concerns\HasAttributes;
+use Sprocketbox\Articulate\Attributes\ComponentAttribute;
 use Sprocketbox\Articulate\Contracts\Attributeable;
 use Sprocketbox\Articulate\Contracts\ComponentMapping;
 use Sprocketbox\Articulate\Contracts\ComponentMapper;
@@ -12,8 +10,6 @@ use Sprocketbox\Articulate\Contracts\EntityMapping;
 use Sprocketbox\Articulate\Contracts\Repository as RepositoryContract;
 use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\Entities\EntityMapper;
-use Sprocketbox\Articulate\Event\Hydrated;
-use Sprocketbox\Articulate\Event\Hydrating;
 use Illuminate\Support\Collection as LaravelCollection;
 use Sprocketbox\Articulate\Contracts\Attribute;
 use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
@@ -145,7 +141,7 @@ class EntityManager
      * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component
      * @throws \InvalidArgumentException
      */
-    public function hydrate(string $class, $data = [], bool $persisted = true)
+    public function hydrate(string $class, $data = [], bool $persisted = true, $mapping = null)
     {
         if (! class_exists($class)) {
             throw new \InvalidArgumentException(sprintf('Invalid class provided %s', $class));
@@ -172,38 +168,53 @@ class EntityManager
             return $this->hydrate($class, $data->toArray(), $persisted);
         }
 
-        $mapping = $this->getEntityMapping($class) ?? $this->getComponentMapping($class);
+        $mapping = $mapping ?? $this->getEntityMapping($class) ?? $this->getComponentMapping($class);
 
         if (! $mapping) {
             throw new \InvalidArgumentException(sprintf('Invalid attributeable class %s', $class));
         }
 
-        $attributes    = $mapping->getAttributes();
-        $attributeable = app()->make($class);
-        // Whether or not the attributeable is an entity
-        $entity        = $attributeable instanceof Entity;
+        $attributes = $mapping->getAttributes();
 
-        if ($entity) {
-            // Now lets fire the pre hydration event for ...reasons
-            Hydrating::dispatch($attributeable, $data);
+        if ($mapping instanceof EntityMapping) {
+            $entity        = true;
+            $attributeable = $mapping->make($data);
+
+            if ($mapping->hasMultipleInheritance()) {
+                $attributes = $attributes->filter(function (Attribute $attribute) use ($class) {
+                    return $attribute->belongsTo($class);
+                });
+            }
+        } else {
+            $entity        = false;
+            $attributeable = $mapping->make();
         }
+
+        $attributeable::hydrating($attributeable, $data);
 
         // Noe we want to cycle through and populate any components
         $attributes->filter(function (Attribute $attribute) {
             return $attribute->isComponent();
-        })->each(function (Attribute $attribute) use (&$data, $attributeable, $persisted) {
+        })->each(function (ComponentAttribute $attribute) use (&$data, $attributeable, $persisted) {
             $componentClass = $attribute->getComponent();
 
             if ($componentClass) {
-                $mapping = $this->getComponentMapping($componentClass);
+                $mapping = $attribute->getCustomMapping() ?? $this->getComponentMapping($componentClass);
 
                 if ($mapping) {
                     $attributeNames = $mapping->getAttributes()->map(function (Attribute $attribute) {
                         return $attribute->getColumnName() ?? $attribute->getName();
-                    });
-                    $attributeable->set($attribute->getName(), $this->hydrate($componentClass, array_only($data, $attributeNames), $persisted));
-                    // We're going to remove the component attributes from the dataset
-                    $data = array_except($data, $attributeNames);
+                    })->toArray();
+
+                    $componentData = array_only($data, $attributeNames);
+
+                    if ($componentData) {
+                        $attributeable->set($attribute->getName(), $this->hydrate($componentClass, $componentData, $persisted, $mapping));
+                        // We're going to remove the component attributes from the dataset
+                        $data = array_except($data, $attributeNames);
+                    } else {
+                        $attributeable->set($attribute->getName(), new $componentClass);
+                    }
                 }
             }
         });
@@ -228,10 +239,7 @@ class EntityManager
             }
         });
 
-        if ($entity) {
-            // Now lets fire the post hydration event for ...reasons
-            Hydrated::dispatch($attributeable, $data);
-        }
+        $attributeable::hydrated($attributeable, $data);
 
         // Now that we're all done, we'll clean the entity so that it doesn't appear to be dirty
         $attributeable->clean();

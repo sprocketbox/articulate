@@ -2,12 +2,19 @@
 
 namespace Sprocketbox\Articulate\Attributes;
 
+use Sprocketbox\Articulate\Components\ComponentMapping;
+
 class ComponentAttribute extends BaseAttribute
 {
     /**
      * @var string
      */
     protected $componentClass;
+
+    /**
+     * @var null|\Closure
+     */
+    protected $customMapping;
 
     /**
      * EntityColumn constructor.
@@ -23,14 +30,10 @@ class ComponentAttribute extends BaseAttribute
 
     public function cast($value, array $data = [])
     {
-        if (! $value || $value instanceof $this->componentClass) {
-            return $value;
-        }
     }
 
     public function parse($value, array $data = [])
     {
-        // TODO: Implement parse() method.
     }
 
     public function isComponent(): bool
@@ -41,5 +44,24 @@ class ComponentAttribute extends BaseAttribute
     public function getComponent(): ?string
     {
         return $this->componentClass;
+    }
+
+    public function setCustomMapping($mapping)
+    {
+        $this->customMapping = $mapping;
+        return $this;
+    }
+
+    public function getCustomMapping()
+    {
+        if ($this->customMapping) {
+            $mapping       = new ComponentMapping($this->componentClass);
+            $customMapping = $this->customMapping;
+            $customMapping($mapping);
+
+            return $mapping;
+        }
+
+        return null;
     }
 }

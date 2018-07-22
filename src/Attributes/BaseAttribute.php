@@ -48,6 +48,11 @@ abstract class BaseAttribute implements Attribute
     protected $default;
 
     /**
+     * @var array
+     */
+    protected $belongsTo = [];
+
+    /**
      * BaseColumn constructor.
      *
      * @param string $attributeName
@@ -189,5 +194,16 @@ abstract class BaseAttribute implements Attribute
     public function getComponent(): ?string
     {
         return null;
+    }
+
+    public function for(string ...$entities)
+    {
+        $this->belongsTo = $entities;
+        return $this;
+    }
+
+    public function belongsTo(string $class): bool
+    {
+        return $this->belongsTo ? \in_array($class, $this->belongsTo, true) : true;
     }
 }

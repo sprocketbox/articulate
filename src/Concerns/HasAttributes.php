@@ -47,7 +47,7 @@ trait HasAttributes
         $methodName = 'set' . studly_case($attribute);
 
         if (method_exists($this, $methodName)) {
-            $this->{$methodName}();
+            $this->{$methodName}($value);
         } else {
             $this->setAttribute($attribute, $value);
         }

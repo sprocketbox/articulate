@@ -23,4 +23,6 @@ interface Attribute
     public function isComponent(): bool;
 
     public function getComponent(): ?string;
+
+    public function belongsTo(string $class): bool;
 }

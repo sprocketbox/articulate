@@ -2,9 +2,8 @@
 
 namespace Sprocketbox\Articulate\Attributes;
 
-use Sprocketbox\Articulate\Support\Collection;
+use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Entities\Entity;
-use Sprocketbox\Articulate\EntityManager;
 
 /**
  * Class EntityColumn
@@ -74,7 +73,7 @@ class EntityAttribute extends BaseAttribute
             });
         }
 
-        return app(EntityManager::class)->hydrate($this->entityClass, $value);
+        return entities()->hydrate($this->entityClass, $value);
     }
 
     /**

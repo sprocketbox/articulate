@@ -17,6 +17,7 @@ use RuntimeException;
  * @method Attributes\StringAttribute string(string $attributeName)
  * @method Attributes\TextAttribute text(string $attributeName)
  * @method Attributes\ArrayAttribute array(string $attributeName)
+ * @method Attributes\ComponentAttribute component(string $attributeName, string $componentClass))
  * @method Attributes\TimestampAttribute timestamp(string $attributeName, string $format = 'Y-m-d H:i:s')
  * @method Attributes\FloatAttribute float(string $attributeName)
  * @method Attributes\UuidAttribute uuid(string $attributeName)

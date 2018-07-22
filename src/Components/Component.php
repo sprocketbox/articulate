@@ -15,21 +15,11 @@ abstract class Component implements Attributeable, \ArrayAccess, \JsonSerializab
 {
     use Concerns\HasAttributes;
 
-    /**
-     * @var \Sprocketbox\Articulate\Entities\Entity
-     */
-    protected $entity;
-
-    public function __construct(Entity $entity)
+    public static function hydrating($attributeable, array $data): void
     {
-        $this->entity = $entity;
     }
 
-    /**
-     * @return \Sprocketbox\Articulate\Entities\Entity
-     */
-    public function getEntity(): Entity
+    public static function hydrated($attributeable, array $data): void
     {
-        return $this->entity;
     }
 }

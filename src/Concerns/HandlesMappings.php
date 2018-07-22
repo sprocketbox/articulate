@@ -18,6 +18,11 @@ trait HandlesMappings
     protected $entityMappings;
 
     /**
+     * @var array
+     */
+    protected $childEntityMappings = [];
+
+    /**
      * @var \Illuminate\Support\Collection
      */
     protected $componentMappings;
@@ -35,6 +40,13 @@ trait HandlesMappings
         }
         
         $this->entityMappings->put($entityClass, $mapping);
+
+        if ($mapping->hasMultipleInheritance()) {
+            foreach ($mapping->getChildClasses() as $childClass) {
+                $this->childEntityMappings[$childClass] = $entityClass;
+            }
+        }
+
         return $this;
     }
 
@@ -45,6 +57,10 @@ trait HandlesMappings
      */
     public function hasEntityMapping(string $entityClass): bool
     {
+        if (\array_key_exists($entityClass, $this->childEntityMappings)) {
+            return $this->hasEntityMapping($this->childEntityMappings[$entityClass]);
+        }
+
         return $this->entityMappings->has($entityClass);
     }
 
@@ -55,6 +71,10 @@ trait HandlesMappings
      */
     public function getEntityMapping(string $entityClass): ?EntityMapping
     {
+        if (\array_key_exists($entityClass, $this->childEntityMappings)) {
+            return $this->getEntityMapping($this->childEntityMappings[$entityClass]);
+        }
+
         return $this->entityMappings->get($entityClass, null);
     }
 
