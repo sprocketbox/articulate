@@ -34,4 +34,11 @@ interface Repository
      * @throws \RuntimeException
      */
     public function hydrate($result);
+
+    /**
+     * @param \Sprocketbox\Articulate\Entities\Entity $entity
+     *
+     * @return mixed
+     */
+    public function persist(Entity $entity);
 }
