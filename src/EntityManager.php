@@ -135,11 +135,10 @@ class EntityManager
     /**
      * @param string $class
      * @param array  $data
-     *
      * @param bool   $persisted
+     * @param null   $mapping
      *
      * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component
-     * @throws \InvalidArgumentException
      */
     public function hydrate(string $class, $data = [], bool $persisted = true, $mapping = null)
     {
@@ -181,6 +180,7 @@ class EntityManager
             $attributeable = $mapping->make($data);
             $class         = \get_class($attributeable);
 
+            // Handle multiple inheritance
             if ($mapping->hasMultipleInheritance()) {
                 $attributes = $attributes->filter(function (Attribute $attribute) use ($class) {
                     return $attribute->belongsTo($class);
@@ -190,10 +190,12 @@ class EntityManager
             $entity        = false;
             $attributeable = $mapping->make();
         }
-
+        if (! is_array($data)) {
+            dd($data);
+        }
         $attributeable::hydrating($attributeable, $data);
 
-        // Noe we want to cycle through and populate any components
+        // Now we want to cycle through and populate any components
         $attributes->filter(function (Attribute $attribute) {
             return $attribute->isComponent();
         })->each(function (ComponentAttribute $attribute) use (&$data, $attributeable, $persisted) {
@@ -278,6 +280,12 @@ class EntityManager
                 if ($attribute) {
                     if ($attribute->isComponent()) {
                         return $this->dehydrate($value);
+                    }
+
+                    $columnName = $attribute->getColumnName();
+
+                    if ($columnName !== $key) {
+                        $key = $columnName;
                     }
 
                     return [$key => $attribute->parse($value)];

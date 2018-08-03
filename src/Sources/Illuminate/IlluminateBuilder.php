@@ -132,7 +132,7 @@ class IlluminateBuilder
 
     public function get($columns = ['*'])
     {
-        return $this->newCollection($this->query->get($columns)->map(function (\stdClass $row) {
+        return $this->newCollection($this->query->get($columns)->map(function ($row) {
             return $this->manager->hydrate($this->entity, $row);
         }));
     }

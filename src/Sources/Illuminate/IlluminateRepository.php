@@ -104,6 +104,10 @@ class IlluminateRepository extends Repository
      */
     public function persist(Entity $entity): ?Entity
     {
+        if ($this->mapping()->isReadOnly()) {
+            throw new \RuntimeException(sprintf('Cannot persist read only entity %s', $this->entity()));
+        }
+
         if (\get_class($entity) === $this->entity()) {
             $keyName  = $this->mapping()->getKey();
             $keyValue = $entity->get($keyName);

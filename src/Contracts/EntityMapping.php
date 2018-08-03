@@ -76,7 +76,25 @@ interface EntityMapping
      */
     public function hasMultipleInheritance(): bool;
 
+    /**
+     * @param string ...$childEntities
+     *
+     * @return mixed
+     */
     public function setChildClasses(string ...$childEntities);
 
+    /**
+     * @return array
+     */
     public function getChildClasses(): array;
+
+    /**
+     * @return mixed
+     */
+    public function setReadOnly();
+
+    /**
+     * @return bool
+     */
+    public function isReadOnly(): bool;
 }

@@ -4,7 +4,7 @@ namespace Sprocketbox\Articulate\Attributes\MongoDB;
 
 use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Attributes\BaseAttribute;
-use Sprocketbox\Articulate\Contracts\Entity;
+use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\EntityManager;
 
 class SubdocumentColumn extends BaseAttribute
@@ -51,7 +51,7 @@ class SubdocumentColumn extends BaseAttribute
 
         if ($this->multiple && $value instanceof Collection) {
             return $value->map(function ($entity) {
-                return $this->cast($entity);
+                return $this->cast($entity instanceof \stdClass ? get_object_vars($entity) : $entity);
             });
         }
 
@@ -66,6 +66,10 @@ class SubdocumentColumn extends BaseAttribute
      */
     public function parse($value, array $data = []): array
     {
+        if ($this->multiple && \is_array($value)) {
+            $value = collect($value);
+        }
+
         if ($this->multiple && $value instanceof Collection) {
             return $value->map(function ($item) {
                 return $this->parse($item);

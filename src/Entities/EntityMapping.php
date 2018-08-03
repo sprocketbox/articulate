@@ -52,6 +52,11 @@ class EntityMapping implements Contract
      */
     protected $childClasses = [];
 
+    /**
+     * @var bool
+     */
+    protected $readOnly = false;
+
     public function __construct(string $entity, string $source)
     {
         $this->entity     = $entity;
@@ -177,5 +182,22 @@ class EntityMapping implements Contract
     public function getChildClasses(): array
     {
         return $this->childClasses;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function setReadOnly(): self
+    {
+        $this->readOnly = true;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isReadOnly(): bool
+    {
+        return $this->readOnly;
     }
 }

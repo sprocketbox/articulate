@@ -17,7 +17,8 @@ use Sprocketbox\Articulate\Entities\EntityMapping;
  */
 abstract class Repository implements Contract
 {
-    use Concerns\HandlesEntities, Concerns\HandlesCriteria;
+    use Concerns\HandlesEntities,
+        Concerns\HandlesCriteria;
 
     /**
      * EntityRepository constructor.
@@ -33,8 +34,9 @@ abstract class Repository implements Contract
 
     protected function getDirty(Entity $entity)
     {
-        return $this->manager()->dehydrate($entity, function (Attribute $attribute, string $name) use ($entity) {
-            return ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
+        return $this->manager()->dehydrate($entity, function ($value, string $name) use ($entity) {
+            $attribute = $this->mapping()->getAttribute($name);
+            return $attribute && ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
         });
     }
 }

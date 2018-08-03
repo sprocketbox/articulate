@@ -4,7 +4,6 @@ namespace Sprocketbox\Articulate\Components;
 
 use Sprocketbox\Articulate\Concerns;
 use Sprocketbox\Articulate\Contracts\Attributeable;
-use Sprocketbox\Articulate\Entities\Entity;
 
 /**
  * Class Component
