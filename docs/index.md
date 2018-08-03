@@ -14,7 +14,7 @@ abstraction.
 
 # How does Articulate work?
 
-Every [entity](/breakdown/entities) in Articulate has a [mapper](/breakdown/mappers) that provides a 
-[mapping](/breakdown/mappings) between entity [attributes](/breakdown/attributes)
-and data source columns. Each entity also belongs to a data [source](/breakdown/sources), dictating where the data should come from,
-and also have a [respository](/breakdown/repositories) that is used to interact with said data source. 
+Every [entity](entities/index.md) in Articulate has a [mapper](entities/mappers.md) that provides a 
+[mapping](entities/mappings.md) between entity [attributes](attributes/index.md)
+and data source columns. Each entity also belongs to a data [source](sources/index.md), dictating where the data should come from,
+and also have a [respository](entities/repositories.md) that is used to interact with said data source. 
