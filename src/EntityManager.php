@@ -190,9 +190,7 @@ class EntityManager
             $entity        = false;
             $attributeable = $mapping->make();
         }
-        if (! is_array($data)) {
-            dd($data);
-        }
+
         $attributeable::hydrating($attributeable, $data);
 
         // Now we want to cycle through and populate any components
@@ -268,7 +266,9 @@ class EntityManager
         $dehydratedArray = [];
 
         if ($mapping) {
-            $attributes = collect($attributeable->getAll());
+            $attributes = $mapping->getAttributes()->map(function (Attribute $attribute) {
+                return $attribute->getDefault();
+            })->merge(collect($attributeable->getAll()));
 
             if ($filter) {
                 $attributes = $attributes->filter($filter);
