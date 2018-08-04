@@ -45,4 +45,14 @@ class RespiteRepository extends Repository
         collect($criteria)->each([$this, 'pushCriteria']);
         return $this->applyCriteria($this->builder())->one();
     }
+
+    /**
+     * @param \Sprocketbox\Articulate\Entities\Entity $entity
+     *
+     * @return mixed
+     */
+    public function persist(Entity $entity)
+    {
+        return null;
+    }
 }
