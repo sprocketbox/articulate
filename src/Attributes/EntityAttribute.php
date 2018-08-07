@@ -3,6 +3,7 @@
 namespace Sprocketbox\Articulate\Attributes;
 
 use Illuminate\Support\Collection;
+use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
 
 /**
@@ -23,9 +24,9 @@ class EntityAttribute extends BaseAttribute
     protected $multiple;
 
     /**
-     * @var bool
+     * @var \Sprocketbox\Articulate\Contracts\Resolver|\Closure
      */
-    protected $load = false;
+    protected $resolver;
 
     /**
      * EntityColumn constructor.
@@ -54,12 +55,6 @@ class EntityAttribute extends BaseAttribute
         }
 
         if (is_scalar($value)) {
-            $repository = entities()->repository($this->entityClass);
-
-            if ($this->load && $repository) {
-                return $repository->load($value);
-            }
-
             return null;
         }
 
@@ -103,5 +98,26 @@ class EntityAttribute extends BaseAttribute
         $this->load = $load;
 
         return $this;
+    }
+
+    public function setResolver($resolver): self
+    {
+        if (! ($resolver instanceof \Closure) && ! ($resolver instanceof Resolver)) {
+            throw new \InvalidArgumentException('Entity resolvers must be in an instance of \Closure or \Sprocketbox\Articulate\Contracts\Resolver');
+        }
+
+        $this->resolver = $resolver;
+
+        return $this;
+    }
+
+    public function getEntityClass(): string
+    {
+        return $this->entityClass;
+    }
+
+    public function getResolver()
+    {
+        return $this->resolver;
     }
 }
