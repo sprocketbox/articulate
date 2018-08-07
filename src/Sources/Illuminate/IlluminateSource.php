@@ -8,14 +8,15 @@ use Sprocketbox\Articulate\Contracts\Source;
 
 class IlluminateSource implements Source
 {
+
     /**
      * @param string $entity
      *
      * @return \Sprocketbox\Articulate\Sources\Illuminate\IlluminateEntityMapping
      */
-    public function newMapping(string $entity, string $source): IlluminateEntityMapping
+    public function newMapping(string $entity): IlluminateEntityMapping
     {
-        return new IlluminateEntityMapping($entity, $source);
+        return new IlluminateEntityMapping($entity, $this->name());
     }
 
     public function builder(...$arguments)
@@ -36,5 +37,10 @@ class IlluminateSource implements Source
         }
 
         return new IlluminateBuilder($query, entities(), $entity, $mapping);
+    }
+
+    public function name(): string
+    {
+        return 'illuminate';
     }
 }

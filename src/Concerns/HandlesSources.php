@@ -12,32 +12,33 @@ trait HandlesSources
     protected $sources;
 
     /**
-     * @param string $ident
      * @param        $source
      *
      * @return $this
      */
-    public function registerSource(string $ident, $source)
+    public function registerSource($source)
     {
-        if ($this->hasSource($ident)) {
-            throw new \InvalidArgumentException(sprintf('Source %s already exists', $ident));
-        }
-
         if ($source instanceof \Closure) {
-            $source = $source($ident);
+            $source = $source();
         }
 
         if (class_exists($source)) {
-            $source = new $source($ident);
+            $source = new $source();
         }
 
         if ($source instanceof Source) {
+            $ident = $source->name();
+
+            if ($this->hasSource($ident)) {
+                throw new \InvalidArgumentException(sprintf('Source %s already exists', $ident));
+            }
+
             $this->sources->put($ident, $source);
 
             return $this;
         }
 
-        throw new \RuntimeException(sprintf('Unable to register source %s', $ident));
+        throw new \RuntimeException(sprintf('Unable to register source %s', \is_string($source) ? $source : \get_class($source)));
     }
 
     /**

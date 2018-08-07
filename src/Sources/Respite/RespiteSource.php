@@ -13,9 +13,9 @@ class RespiteSource implements Source
      *
      * @return \Sprocketbox\Articulate\Contracts\EntityMapping
      */
-    public function newMapping(string $entity, string $source)
+    public function newMapping(string $entity)
     {
-        return new RespiteEntityMapping($entity, $source);
+        return new RespiteEntityMapping($entity, $this->name());
     }
 
     public function builder(...$arguments)
@@ -32,5 +32,10 @@ class RespiteSource implements Source
     public function respite()
     {
         return respite();
+    }
+
+    public function name(): string
+    {
+        return 'respite';
     }
 }

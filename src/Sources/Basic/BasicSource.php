@@ -13,13 +13,18 @@ class BasicSource implements Source
      *
      * @return \Sprocketbox\Articulate\Contracts\EntityMapping
      */
-    public function newMapping(string $entity, string $source)
+    public function newMapping(string $entity)
     {
-        return new BasicEntityMapping($entity, $source);
+        return new BasicEntityMapping($entity, $this->name());
     }
 
     public function builder(...$arguments)
     {
         return null;
+    }
+
+    public function name(): string
+    {
+        return 'builder';
     }
 }
