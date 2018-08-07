@@ -71,11 +71,15 @@ trait HandlesMappings
      */
     public function getEntityMapping(string $entityClass): ?EntityMapping
     {
+        if (! $this->hasEntityMapping($entityClass)) {
+            throw new \InvalidArgumentException(sprintf('No mapping for entity %s', $entityClass));
+        }
+
         if (\array_key_exists($entityClass, $this->childEntityMappings)) {
             return $this->getEntityMapping($this->childEntityMappings[$entityClass]);
         }
 
-        return $this->entityMappings->get($entityClass, null);
+        return $this->entityMappings->get($entityClass);
     }
 
     /**
@@ -111,6 +115,10 @@ trait HandlesMappings
      */
     public function getComponentMapping(string $componentClass): ?ComponentMapping
     {
+        if (! $this->getComponentMapping($componentClass)) {
+            throw new \InvalidArgumentException(sprintf('No mapping for component %s', $componentClass));
+        }
+
         return $this->componentMappings->get($componentClass, null);
     }
 }
