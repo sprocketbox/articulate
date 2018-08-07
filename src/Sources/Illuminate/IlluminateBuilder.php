@@ -6,6 +6,9 @@ use BadMethodCallException;
 use Closure;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
+use Sprocketbox\Articulate\Attributes\EntityAttribute;
+use Sprocketbox\Articulate\Contracts\EntityMapping;
+use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\EntityManager;
 use Sprocketbox\Articulate\Support\Collection;
@@ -29,6 +32,11 @@ class IlluminateBuilder
      * @var string
      */
     protected $entity;
+
+    /**
+     * @var \Sprocketbox\Articulate\Contracts\EntityMapping
+     */
+    protected $mapping;
 
     /**
      * All of the globally registered builder macros.
@@ -71,10 +79,12 @@ class IlluminateBuilder
         'delete',
     ];
 
-    public function __construct(QueryBuilder $query, EntityManager $entityManager)
+    public function __construct(QueryBuilder $query, EntityManager $entityManager, string $entity, ?EntityMapping $mapping = null)
     {
         $this->setQuery($query);
         $this->manager = $entityManager;
+        $this->mapping = $mapping;
+        $this->setEntity($entity);
     }
 
     protected function newCollection($items = [])
@@ -85,6 +95,11 @@ class IlluminateBuilder
     public function setEntity(string $entity): self
     {
         $this->entity = $entity;
+
+        if (! $this->mapping || $this->mapping->getEntity() !== $entity) {
+            $this->mapping = $this->manager->getEntityMapping($entity);
+        }
+
         return $this;
     }
 
