@@ -28,6 +28,11 @@ interface Repository
     public function entity(): string;
 
     /**
+     * @return \Sprocketbox\Articulate\Contracts\Source
+     */
+    public function source(): Source;
+
+    /**
      * @param $result
      *
      * @return null|\Sprocketbox\Handle\Entities\Entity|static|\Sprocketbox\Articulate\Support\Collection
