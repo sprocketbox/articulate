@@ -47,7 +47,7 @@ class EntityManager
             throw new \RuntimeException(sprintf('Invalid source %s for entity %s', $source, $entity));
         }
 
-        $mapping = $source->newMapping($entity, $mapper->source());
+        $mapping = $source->newMapping($entity);
         $mapper->map($mapping);
 
         $this->registerEntityMapping($entity, $mapping);

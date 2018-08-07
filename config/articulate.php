@@ -16,6 +16,7 @@ return [
         'float'     => \Sprocketbox\Articulate\Attributes\FloatAttribute::class,
         'text'      => \Sprocketbox\Articulate\Attributes\TextAttribute::class,
         'array'     => \Sprocketbox\Articulate\Attributes\ArrayAttribute::class,
+        'uuid'      => \Sprocketbox\Articulate\Attributes\UuidAttribute::class,
         //'object_id'   => \Sprocketbox\Articulate\Attributes\MongoDB\ObjectIdColumn::class,
         //'subdocument' => \Sprocketbox\Articulate\Attributes\MongoDB\SubdocumentColumn::class,
         //'utc'         => \Sprocketbox\Articulate\Attributes\MongoDB\UtcColumn::class,
@@ -35,8 +36,9 @@ return [
 
     'sources' => [
 
-        'illuminate' => \Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource::class,
-        //'respite'    => \Sprocketbox\Articulate\Sources\Respite\RespiteSource::class,
+        \Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource::class,
+        //\Sprocketbox\Articulate\Sources\Respite\RespiteSource::class,
+        //\Sprocketbox\Articulate\Sources\Basic\BasicSource::class,
 
     ],
 
