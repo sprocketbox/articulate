@@ -44,7 +44,7 @@ class MySQLGrammar extends BaseGrammar
             // see if that component exists. If it does we'll just call the compiler
             // function for the component which is responsible for making the SQL.
             if (null !== $query->$component && property_exists($query, $component)) {
-                $method = 'compile'.ucfirst($component);
+                $method = 'compile' . ucfirst($component);
 
                 $sql[$component] = $this->$method($query, $query->$component);
             }

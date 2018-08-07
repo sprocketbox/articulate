@@ -35,6 +35,6 @@ class IlluminateSource implements Source
             $query->from($mapping->getTable());
         }
 
-        return (new IlluminateBuilder($query, entities()))->setEntity($entity ?? $mapping->getEntity());
+        return new IlluminateBuilder($query, entities(), $entity, $mapping);
     }
 }
