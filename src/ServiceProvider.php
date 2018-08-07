@@ -118,8 +118,8 @@ class ServiceProvider extends BaseProvider
     {
         $sources = config('articulate.sources', []);
 
-        foreach ($sources as $ident => $source) {
-            $this->entities->registerSource($ident, $source);
+        foreach ($sources as $source) {
+            $this->entities->registerSource($source);
         }
     }
 }
