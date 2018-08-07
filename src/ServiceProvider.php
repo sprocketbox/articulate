@@ -41,8 +41,6 @@ class ServiceProvider extends BaseProvider
         if ((bool)config('articulate.extra.recursive') === true) {
             $this->registerRecursive();
         }
-
-        $this->registerEntities();
     }
 
     /**
@@ -76,6 +74,7 @@ class ServiceProvider extends BaseProvider
         });
 
         $this->registerSources();
+        $this->registerEntities();
     }
 
     /**

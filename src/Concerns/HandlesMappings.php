@@ -67,9 +67,9 @@ trait HandlesMappings
     /**
      * @param string $entityClass
      *
-     * @return null|\Sprocketbox\Articulate\Entities\EntityMapping
+     * @return \Sprocketbox\Articulate\Entities\EntityMapping
      */
-    public function getEntityMapping(string $entityClass): ?EntityMapping
+    public function getEntityMapping(string $entityClass): EntityMapping
     {
         if (! $this->hasEntityMapping($entityClass)) {
             throw new \InvalidArgumentException(sprintf('No mapping for entity %s', $entityClass));
@@ -111,14 +111,14 @@ trait HandlesMappings
     /**
      * @param string $componentClass
      *
-     * @return null|\Sprocketbox\Articulate\Components\ComponentMapping
+     * @return \Sprocketbox\Articulate\Components\ComponentMapping
      */
-    public function getComponentMapping(string $componentClass): ?ComponentMapping
+    public function getComponentMapping(string $componentClass): ComponentMapping
     {
         if (! $this->getComponentMapping($componentClass)) {
             throw new \InvalidArgumentException(sprintf('No mapping for component %s', $componentClass));
         }
 
-        return $this->componentMappings->get($componentClass, null);
+        return $this->componentMappings->get($componentClass);
     }
 }
