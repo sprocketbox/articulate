@@ -2,7 +2,8 @@
 
 namespace Sprocketbox\Articulate\Sources\Basic;
 
-class BasicEntityMapping
-{
+use Sprocketbox\Articulate\Entities\EntityMapping;
 
+class BasicEntityMapping extends EntityMapping
+{
 }
