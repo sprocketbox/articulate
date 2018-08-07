@@ -167,9 +167,7 @@ class IlluminateBuilder
 
     public function get($columns = ['*'])
     {
-        return $this->newCollection($this->query->get($columns)->map(function ($row) {
-            return $this->manager->hydrate($this->entity, $this->getWith($row));
-        }));
+        return $this->newCollection($this->manager->hydrate($this->getEntity(), $this->query->get($columns)));
     }
 
     protected function getWith(\stdClass $row): \stdClass

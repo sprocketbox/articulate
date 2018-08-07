@@ -36,4 +36,11 @@ interface ComponentMapping
      * @return null|\Sprocketbox\Articulate\Contracts\Attribute
      */
     public function getAttribute(string $column): ?Attribute;
+
+    /**
+     * @param mixed ...$arguments
+     *
+     * @return \Sprocketbox\Articulate\Components\Component
+     */
+    public function make(...$arguments);
 }

@@ -97,4 +97,11 @@ interface EntityMapping
      * @return bool
      */
     public function isReadOnly(): bool;
+
+    /**
+     * @param mixed ...$arguments
+     *
+     * @return \Sprocketbox\Articulate\Entities\Entity
+     */
+    public function make(...$arguments);
 }

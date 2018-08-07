@@ -36,7 +36,7 @@ abstract class Repository implements Contract
     {
         return $this->manager()->dehydrate($entity, function ($value, string $name) use ($entity) {
             $attribute = $this->mapping()->getAttribute($name);
-            return $attribute && ! $attribute->isImmutable() && ! $attribute->isDynamic() && $entity->isDirty($name);
+            return $attribute && (! $entity->isPersisted() || ($entity->isPersisted() && ! $attribute->isImmutable())) && ! $attribute->isDynamic() && $entity->isDirty($name);
         });
     }
 }

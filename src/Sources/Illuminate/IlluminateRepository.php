@@ -3,7 +3,9 @@
 namespace Sprocketbox\Articulate\Sources\Illuminate;
 
 use Carbon\Carbon;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
+use Illuminate\Contracts\Pagination\Paginator as SimplePaginatorContract;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Sprocketbox\Articulate\Contracts\Criteria;
@@ -30,8 +32,13 @@ class IlluminateRepository extends Repository
      */
     public function getByCriteria(Criteria... $criteria): Collection
     {
-        collect($criteria)->each([$this, 'pushCriteria']);
-        return $this->applyCriteria($this->query())->get() ?? new Collection;
+        $result = $this->pushCriteria(...$criteria)
+                    ->applyCriteria($this->query())
+                    ->get() ?? new Collection;
+
+        $this->resetCriteria();
+
+        return $result;
     }
 
     /**
@@ -41,8 +48,13 @@ class IlluminateRepository extends Repository
      */
     public function getOneByCriteria(Criteria... $criteria): ?Entity
     {
-        collect($criteria)->each([$this, 'pushCriteria']);
-        return $this->applyCriteria($this->query())->first();
+        $result = $this->pushCriteria(...$criteria)
+                    ->applyCriteria($this->query())
+                    ->first();
+
+        $this->resetCriteria();
+
+        return $result;
     }
 
     /**
@@ -76,23 +88,55 @@ class IlluminateRepository extends Repository
 
     /**
      * @param \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
-     * @param int                                                          $count
+     * @param int                                                          $perPage
      * @param string                                                       $pageName
+     * @param null                                                         $page
      *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    protected function paginate($query, int $count, string $pageName = 'page'): LengthAwarePaginatorContract
+    protected function paginate($query, int $perPage, string $pageName = 'page', $page = null): LengthAwarePaginatorContract
     {
         $total     = $query->toBase()->getCountForPagination();
         $paginator = null;
 
-        $page    = Paginator::resolveCurrentPage($pageName);
-        $results = $query->forPage($page, $count)->get();
+        $page    = $page ?: Paginator::resolveCurrentPage($pageName);
+        $results = $query->forPage($page, $perPage)->get();
 
-        return new LengthAwarePaginator($results, $total, $count, $page, [
+        $options = [
             'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
-        ]);
+        ];
+
+        return Container::getInstance()->makeWith(LengthAwarePaginator::class, compact(
+            'results', 'total', 'perPage', 'page', 'options'
+        ));
+    }
+
+    /**
+     * @param \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
+     * @param int                                                          $perPage
+     * @param string                                                       $pageName
+     * @param null                                                         $page
+     *
+     * @return \Illuminate\Contracts\Pagination\Paginator
+     */
+    protected function simplePaginate($query, int $perPage, string $pageName = 'page', $page = null): SimplePaginatorContract
+    {
+        $page = $page ?: Paginator::resolveCurrentPage($pageName);
+
+        // Next we will set the limit and offset for this query so that when we get the
+        // results we get the proper section of results. Then, we'll create the full
+        // paginator instances for these results with the given page and per page.
+        $query->skip(($page - 1) * $perPage)->take($perPage + 1);
+        $results = $query->get();
+        $options = [
+            'path'     => Paginator::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ];
+
+        return Container::getInstance()->makeWith(Paginator::class, compact(
+            'results', 'perPage', 'page', 'options'
+        ));
     }
 
     /**

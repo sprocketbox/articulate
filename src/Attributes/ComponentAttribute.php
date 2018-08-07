@@ -30,10 +30,12 @@ class ComponentAttribute extends BaseAttribute
 
     public function cast($value, array $data = [])
     {
+        return entities()->hydrateComponent($this->getComponent(), $this->getCustomMapping(), $value);
     }
 
     public function parse($value, array $data = [])
     {
+        return entities()->dehydrateComponent($value);
     }
 
     public function isComponent(): bool

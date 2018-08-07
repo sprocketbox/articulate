@@ -2,7 +2,6 @@
 
 namespace Sprocketbox\Articulate\Concerns;
 
-use Sprocketbox\Articulate\Support\Collection;
 use Illuminate\Support\Collection as LaravelCollection;
 use Sprocketbox\Articulate\Contracts\Criteria;
 
@@ -31,23 +30,15 @@ trait HandlesCriteria
      *
      * @return $this
      */
-    public function pushCriteria($criteria): self
+    public function pushCriteria(Criteria ...$criteria): self
     {
-        if (! ($criteria instanceof Criteria)) {
-            if (class_exists($criteria)) {
-                try {
-                    $criteria = new $criteria;
-                } catch (\Exception $e) {
-                }
+        foreach ($criteria as $criterion) {
+            if ($criterion->validFor($this->entity())) {
+                $this->getCriteria()->push($criterion);
             }
         }
 
-        if ($criteria instanceof Criteria && $criteria->validFor($this->entity())) {
-            $this->getCriteria()->push($criteria);
-            return $this;
-        }
-
-        throw new \InvalidArgumentException('Invalid criteria');
+        return $this;
     }
 
     /**
@@ -85,9 +76,7 @@ trait HandlesCriteria
     protected function applyCriteria($query)
     {
         if (! $this->skipCriteria) {
-            $this->getCriteria()->sortBy(function (Criteria $criteria) {
-                return $criteria->getPriority();
-            })->each(function (Criteria $criteria) use ($query) {
+            $this->getCriteria()->each(function (Criteria $criteria) use ($query) {
                 $criteria->perform($query);
             });
         }
