@@ -2,15 +2,14 @@
 
 namespace Sprocketbox\Articulate\Sources\Illuminate;
 
-use Illuminate\Pagination\LengthAwarePaginator;
-use Sprocketbox\Articulate\Entities\Entity;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginatorContract;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Sprocketbox\Articulate\Contracts\Criteria;
+use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\Repositories\Repository;
 use Sprocketbox\Articulate\Support\Collection;
-use Sprocketbox\Articulate\Contracts\Attribute;
-use Sprocketbox\Articulate\Contracts\Criteria;
 
 class IlluminateRepository extends Repository
 {
@@ -99,7 +98,7 @@ class IlluminateRepository extends Repository
     /**
      * @param \Sprocketbox\Articulate\Entities\Entity $entity
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity
+     * @return \Sprocketbox\Articulate\Entities\Entity|null
      * @throws \RuntimeException
      */
     public function persist(Entity $entity): ?Entity
@@ -108,43 +107,45 @@ class IlluminateRepository extends Repository
             throw new \RuntimeException(sprintf('Cannot persist read only entity %s', $this->entity()));
         }
 
-        if (\get_class($entity) === $this->entity()) {
-            $keyName  = $this->mapping()->getKey();
-            $keyValue = $entity->get($keyName);
-            $insert   = ! $entity->isPersisted();
+        if (\get_class($entity) !== $this->entity()) {
+            throw new \InvalidArgumentException(sprintf('Entity %s does not belong to the repository %s', \get_class($entity), \get_class($this)));
+        }
 
-            // todo: Cascade saving to child entities
-            $attributes = $this->mapping()->getAttributes();
-            $fields = $this->getDirty($entity);
+        $keyName  = $this->mapping()->getKey();
+        $keyValue = $entity->get($keyName);
+        $insert   = ! $entity->isPersisted();
 
-            if (\count($fields)) {
-                $now = Carbon::now();
+        // todo: Cascade saving to child entities
+        $attributes = $this->mapping()->getAttributes();
+        $fields     = $this->getDirty($entity);
 
-                if ($insert) {
-                    if (! isset($fields['created_at']) && $attributes->has('created_at')) {
-                        $fields['created_at'] = $attributes->get('created_at')->parse($now);
-                    }
-                    if (! isset($fields['updated_at']) && $attributes->has('updated_at')) {
-                        $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
-                    }
+        if (\count($fields)) {
+            $now = Carbon::now();
 
-                    $newKeyValue = $this->query($this->entity())->insertGetId($fields);
-
-                    if (empty($keyValue) && ! empty($newKeyValue)) {
-                        $entity->set($keyName, $newKeyValue);
-                    }
-
-                    $entity->setPersisted();
-                } else {
-                    if ($attributes->has('updated_at')) {
-                        $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
-                    }
-
-                    $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);
+            if ($insert) {
+                if (! isset($fields['created_at']) && $attributes->has('created_at')) {
+                    $fields['created_at'] = $attributes->get('created_at')->parse($now);
+                }
+                if (! isset($fields['updated_at']) && $attributes->has('updated_at')) {
+                    $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
                 }
 
-                return $entity;
+                $newKeyValue = $this->query($this->entity())->insertGetId($fields);
+
+                if (empty($keyValue) && ! empty($newKeyValue)) {
+                    $entity->set($keyName, $newKeyValue);
+                }
+
+                $entity->setPersisted();
+            } else {
+                if ($attributes->has('updated_at')) {
+                    $fields['updated_at'] = $attributes->get('updated_at')->parse($now);
+                }
+
+                $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);
             }
+
+            return $entity;
         }
     }
 }
