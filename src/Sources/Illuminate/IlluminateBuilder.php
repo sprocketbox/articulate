@@ -121,10 +121,30 @@ class IlluminateBuilder
         return $this;
     }
 
-    public function with(string... $relationships)
+    public function with(...$entities)
     {
-        $this->with = array_merge($this->with, $relationships);
+        $this->with = array_merge($this->with, $entities);
         return $this;
+    }
+
+    public function has($entity)
+    {
+        $attribute = $this->mapping->getAttribute($entity);
+
+        if ($attribute && $attribute instanceof EntityAttribute) {
+            $resolver = $attribute->getResolver();
+
+            if ($resolver) {
+                $mapping = $this->manager->getEntityMapping($attribute->getEntityClass());
+                $this->whereExists(function (IlluminateBuilder $builder) use($resolver, $mapping) {
+                    if ($resolver instanceof Closure) {
+                        $resolver($builder, $this->mapping, $mapping);
+                    } else if ($resolver instanceof Resolver) {
+                        $resolver->has($builder, $this->mapping, $mapping);
+                    }
+                });
+            }
+        }
     }
 
     /**
@@ -148,8 +168,51 @@ class IlluminateBuilder
     public function get($columns = ['*'])
     {
         return $this->newCollection($this->query->get($columns)->map(function ($row) {
-            return $this->manager->hydrate($this->entity, $row);
+            return $this->manager->hydrate($this->entity, $this->getWith($row));
         }));
+    }
+
+    protected function getWith(\stdClass $row): \stdClass
+    {
+        if ($this->with) {
+            $data = (array)$row;
+            collect($this->with)->mapWithKeys(function ($entity, $key) use ($data) {
+                $conditions = null;
+
+                if (! is_numeric($key)) {
+                    $attributeName = $key;
+                    $conditions    = $entity;
+                } else {
+                    $attributeName = $entity;
+                }
+
+                $attribute = $this->mapping->getAttribute($attributeName);
+
+                if ($attribute && $attribute instanceof EntityAttribute) {
+                    $resolver = $attribute->getResolver();
+
+                    if ($resolver) {
+                        $repository = $this->manager->repository($attribute->getEntityClass());
+
+                        if ($resolver instanceof Closure) {
+                            return [$attributeName => $resolver($repository, $data, $conditions)];
+                        }
+
+                        if ($resolver instanceof Resolver) {
+                            return [$attributeName => $resolver->get($repository, $data, $conditions)];
+                        }
+
+                        throw new \RuntimeException(sprintf('Invalid entity resolver for %s on $s', $attributeName, $this->entity));
+                    }
+                }
+
+                throw new \InvalidArgumentException(sprintf('Cannot load %s for %s, it isn\'t a mapped entity attribute', $attributeName, $this->entity));
+            })->each(function ($data, $attribute) use (&$row) {
+                $row->{$attribute} = $data;
+            });
+        }
+
+        return $row;
     }
 
     /**
