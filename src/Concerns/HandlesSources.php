@@ -20,9 +20,7 @@ trait HandlesSources
     {
         if ($source instanceof \Closure) {
             $source = $source();
-        }
-
-        if (class_exists($source)) {
+        } else if (class_exists($source)) {
             $source = new $source();
         }
 
