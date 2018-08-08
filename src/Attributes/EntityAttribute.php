@@ -100,12 +100,8 @@ class EntityAttribute extends BaseAttribute
         return $this;
     }
 
-    public function setResolver($resolver): self
+    public function setResolver(Resolver $resolver): self
     {
-        if (! ($resolver instanceof \Closure) && ! ($resolver instanceof Resolver)) {
-            throw new \InvalidArgumentException('Entity resolvers must be in an instance of \Closure or \Sprocketbox\Articulate\Contracts\Resolver');
-        }
-
         $this->resolver = $resolver;
 
         return $this;
@@ -116,7 +112,7 @@ class EntityAttribute extends BaseAttribute
         return $this->entityClass;
     }
 
-    public function getResolver()
+    public function getResolver(): ?Resolver
     {
         return $this->resolver;
     }
