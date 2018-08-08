@@ -8,7 +8,6 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Sprocketbox\Articulate\Attributes\EntityAttribute;
 use Sprocketbox\Articulate\Contracts\EntityMapping;
-use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\EntityManager;
 use Sprocketbox\Articulate\Support\Collection;
@@ -136,12 +135,8 @@ class IlluminateBuilder
 
             if ($resolver) {
                 $mapping = $this->manager->getEntityMapping($attribute->getEntityClass());
-                $this->whereExists(function (IlluminateBuilder $builder) use($resolver, $mapping) {
-                    if ($resolver instanceof Closure) {
-                        $resolver($builder, $this->mapping, $mapping);
-                    } else if ($resolver instanceof Resolver) {
-                        $resolver->has($builder, $this->mapping, $mapping);
-                    }
+                $this->whereExists(function (IlluminateBuilder $builder) use ($resolver, $mapping) {
+                    $resolver->has($builder, $this->mapping, $mapping);
                 });
             }
         }
@@ -192,15 +187,7 @@ class IlluminateBuilder
                     if ($resolver) {
                         $repository = $this->manager->repository($attribute->getEntityClass());
 
-                        if ($resolver instanceof Closure) {
-                            return [$attributeName => $resolver($repository, $data, $conditions)];
-                        }
-
-                        if ($resolver instanceof Resolver) {
-                            return [$attributeName => $resolver->get($repository, $data, $conditions)];
-                        }
-
-                        throw new \RuntimeException(sprintf('Invalid entity resolver for %s on $s', $attributeName, $this->entity));
+                        return [$attributeName => $resolver->get($repository, $data, $conditions)];
                     }
                 }
 
