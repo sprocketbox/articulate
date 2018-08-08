@@ -8,6 +8,8 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator as LengthAwarePaginator
 use Illuminate\Contracts\Pagination\Paginator as SimplePaginatorContract;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
+use Sprocketbox\Articulate\Attributes\EntityAttribute;
+use Sprocketbox\Articulate\Contracts\Attribute;
 use Sprocketbox\Articulate\Contracts\Criteria;
 use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\Repositories\Repository;
@@ -33,8 +35,8 @@ class IlluminateRepository extends Repository
     public function getByCriteria(Criteria... $criteria): Collection
     {
         $result = $this->pushCriteria(...$criteria)
-                    ->applyCriteria($this->query())
-                    ->get() ?? new Collection;
+                       ->applyCriteria($this->query())
+                       ->get() ?? new Collection;
 
         $this->resetCriteria();
 
@@ -49,8 +51,8 @@ class IlluminateRepository extends Repository
     public function getOneByCriteria(Criteria... $criteria): ?Entity
     {
         $result = $this->pushCriteria(...$criteria)
-                    ->applyCriteria($this->query())
-                    ->first();
+                       ->applyCriteria($this->query())
+                       ->first();
 
         $this->resetCriteria();
 
@@ -142,10 +144,10 @@ class IlluminateRepository extends Repository
     /**
      * @param \Sprocketbox\Articulate\Entities\Entity $entity
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity|null
+     * @return \Sprocketbox\Articulate\Entities\Entity
      * @throws \RuntimeException
      */
-    public function persist(Entity $entity): ?Entity
+    public function persist(Entity $entity): Entity
     {
         if ($this->mapping()->isReadOnly()) {
             throw new \RuntimeException(sprintf('Cannot persist read only entity %s', $this->entity()));
@@ -155,13 +157,18 @@ class IlluminateRepository extends Repository
             throw new \InvalidArgumentException(sprintf('Entity %s does not belong to the repository %s', \get_class($entity), \get_class($this)));
         }
 
-        $keyName  = $this->mapping()->getKey();
-        $keyValue = $entity->get($keyName);
-        $insert   = ! $entity->isPersisted();
-
-        // todo: Cascade saving to child entities
+        $keyName    = $this->mapping()->getKey();
+        $keyValue   = $entity->get($keyName);
+        $insert     = ! $entity->isPersisted();
+        $entities   = [];
         $attributes = $this->mapping()->getAttributes();
         $fields     = $this->getDirty($entity);
+
+        $attributes->each(function (Attribute $attribute) use(&$entities, $entity) {
+            if ($attribute instanceof EntityAttribute) {
+                $entities[$attribute->getEntityClass()] = $entity->get($attribute->getName());
+            }
+        });
 
         if (\count($fields)) {
             $now = Carbon::now();
@@ -177,7 +184,7 @@ class IlluminateRepository extends Repository
                 $newKeyValue = $this->query($this->entity())->insertGetId($fields);
 
                 if (empty($keyValue) && ! empty($newKeyValue)) {
-                    $entity->set($keyName, $newKeyValue);
+                    $entity->set($keyName, $attributes->get($keyName)->parse($newKeyValue));
                 }
 
                 $entity->setPersisted();
@@ -188,8 +195,18 @@ class IlluminateRepository extends Repository
 
                 $this->query($this->entity())->where($keyName, '=', $keyValue)->update($fields);
             }
-
-            return $entity;
         }
+
+        if ($entities) {
+            collect($entities)->each(function (Entity $entity) {
+                $repository = $this->manager()->repository(\get_class($entity));
+
+                if ($repository) {
+                    $repository->persist($entity);
+                }
+            });
+        }
+
+        return $entity;
     }
 }
