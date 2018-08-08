@@ -94,30 +94,30 @@ trait HandlesAttributeables
             $attributes = $attributes->filter(function (Attribute $attribute) use ($class) {
                 return $attribute->belongsTo($class);
             });
+        }
 
-            $entity::hydrating($entity, $data);
+        $entity::hydrating($entity, $data);
 
-            collect($data)->each(function ($value, $key) use ($attributes, $entity, $data) {
-                $attribute = $attributes->first(function (Attribute $attribute) use ($key) {
-                    return $attribute->getName() === $key || $attribute->getColumnName() === $key;
-                });
-
-                if ($attribute) {
-                    $attributeName = $attribute->getName();
-                    $columnName    = $attribute->getColumnName();
-
-                    // If a mapping has a different column name, we want to actually set that attribute
-                    // simply because it's useful to have that data
-                    if ($attributeName && $columnName !== $attributeName) {
-                        $entity->set($columnName, $value);
-                    }
-
-                    $entity->set($attributeName, $attribute->cast($value, $data));
-                }
+        collect($data)->each(function ($value, $key) use ($attributes, $entity, $data) {
+            $attribute = $attributes->first(function (Attribute $attribute) use ($key) {
+                return $attribute->getName() === $key || $attribute->getColumnName() === $key;
             });
 
-            $entity::hydrated($entity, $data);
-        }
+            if ($attribute) {
+                $attributeName = $attribute->getName();
+                $columnName    = $attribute->getColumnName();
+
+                // If a mapping has a different column name, we want to actually set that attribute
+                // simply because it's useful to have that data
+                if ($attributeName && $columnName !== $attributeName) {
+                    $entity->set($columnName, $value);
+                }
+
+                $entity->set($attributeName, $attribute->cast($value, $data));
+            }
+        });
+
+        $entity::hydrated($entity, $data);
 
         $entity->clean();
 
