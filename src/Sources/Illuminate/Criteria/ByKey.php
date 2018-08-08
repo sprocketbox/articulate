@@ -24,7 +24,7 @@ class ByKey extends BaseCriteria
 
         if ($mapping) {
             $keyName = $mapping->getKey();
-            $query->whereIn($keyName, $this->key);
+            $query->where($keyName, '=', $this->key);
         }
     }
 }
