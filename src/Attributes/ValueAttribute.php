@@ -43,5 +43,7 @@ class ValueAttribute extends BaseAttribute
         if (! ($value instanceof $this->valueClass)) {
             return $value;
         }
+
+        return null;
     }
 }
