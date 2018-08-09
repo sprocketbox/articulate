@@ -18,7 +18,7 @@ class ByKey extends BaseCriteria
      *
      * @return mixed
      */
-    public function perform($query)
+    public function perform($query): void
     {
         $mapping = entities()->mapping($query->getEntity());
 
