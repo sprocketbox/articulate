@@ -10,14 +10,14 @@ use Sprocketbox\Articulate\Support\Collection;
 /**
  * Class RespiteRepository
  *
- * @method \Sprocketbox\Articulate\Sources\Respite\RespiteBuilder applyCriteria(RespiteBuilder $query)
+ * @method RespiteBuilder applyCriteria(RespiteBuilder $query)
  *
  * @package Sprocketbox\Articulate\Sources\Respite
  */
 class RespiteRepository extends Repository
 {
     /**
-     * @return \Sprocketbox\Articulate\Sources\Respite\RespiteBuilder
+     * @return RespiteBuilder
      */
     protected function builder(): RespiteBuilder
     {
