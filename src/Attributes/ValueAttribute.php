@@ -19,6 +19,7 @@ class ValueAttribute extends BaseAttribute
      *
      * @param string $attributeName
      * @param string $valueClass
+     * @param array  $arguments
      */
     public function __construct(string $attributeName, string $valueClass, ...$arguments)
     {
