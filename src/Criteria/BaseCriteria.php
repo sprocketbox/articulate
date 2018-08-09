@@ -39,9 +39,9 @@ abstract class BaseCriteria implements Criteria
     /**
      * @param $query
      *
-     * @return mixed
+     * @return void
      */
-    public abstract function perform($query);
+    abstract public function perform($query): void;
 
     /**
      * @param string $entityClass
