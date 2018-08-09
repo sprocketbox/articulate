@@ -9,7 +9,6 @@ class BasicSource implements Source
 
     /**
      * @param string $entity
-     * @param string $source
      *
      * @return \Sprocketbox\Articulate\Contracts\EntityMapping
      */
