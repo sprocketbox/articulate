@@ -6,12 +6,13 @@ interface Resolver
 {
     /**
      * @param \Sprocketbox\Articulate\Contracts\Repository $repository
-     * @param array                                        $data
+     * @param string                                       $attribute
+     * @param array|\Illuminate\Support\Collection         $data
      * @param \Closure|null                                $condition
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
+     * @return array|\Sprocketbox\Articulate\Support\Collection
      */
-    public function get(Repository $repository, array $data = [], ?\Closure $condition = null);
+    public function get(Repository $repository, string $attribute, $data = [], ?\Closure $condition = null);
 
     /**
      * @param mixed                                           $builder

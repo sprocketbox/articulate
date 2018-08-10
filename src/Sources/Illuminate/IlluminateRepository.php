@@ -101,8 +101,8 @@ class IlluminateRepository extends Repository
         $total     = $query->toBase()->getCountForPagination();
         $paginator = null;
 
-        $page    = $page ?: Paginator::resolveCurrentPage($pageName);
-        $results = $query->forPage($page, $perPage)->get();
+        $page  = $page ?: Paginator::resolveCurrentPage($pageName);
+        $items = $query->forPage($page, $perPage)->get();
 
         $options = [
             'path'     => Paginator::resolveCurrentPath(),
@@ -110,7 +110,7 @@ class IlluminateRepository extends Repository
         ];
 
         return Container::getInstance()->makeWith(LengthAwarePaginator::class, compact(
-            'results', 'total', 'perPage', 'page', 'options'
+            'items', 'total', 'perPage', 'page', 'options'
         ));
     }
 
@@ -130,14 +130,14 @@ class IlluminateRepository extends Repository
         // results we get the proper section of results. Then, we'll create the full
         // paginator instances for these results with the given page and per page.
         $query->skip(($page - 1) * $perPage)->take($perPage + 1);
-        $results = $query->get();
+        $items   = $query->get();
         $options = [
             'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ];
 
         return Container::getInstance()->makeWith(Paginator::class, compact(
-            'results', 'perPage', 'page', 'options'
+            'items', 'perPage', 'page', 'options'
         ));
     }
 
@@ -174,6 +174,16 @@ class IlluminateRepository extends Repository
             }
         });
 
+        $fields = collect($fields)->filter(function ($value, $key) use ($attributes) {
+            $attribute = $attributes->get($key);
+
+            if ($attribute) {
+                return ! $attribute->isDynamic();
+            }
+
+            return true;
+        })->toArray();
+
         if (\count($fields)) {
             $now = Carbon::now();
 
@@ -202,11 +212,17 @@ class IlluminateRepository extends Repository
         }
 
         if ($entities) {
-            collect($entities)->each(function (Entity $entity) {
-                $repository = $this->manager()->repository(\get_class($entity));
+            collect($entities)->each(function ($entity, string $entityClass) {
+                $repository = $this->manager()->repository($entityClass);
 
                 if ($repository) {
-                    $repository->persist($entity);
+                    if (\is_array($entity)) {
+                        array_walk($entity, function (Entity $entity) use ($repository) {
+                            $repository->persist($entity);
+                        });
+                    } else if ($entity instanceof Entity) {
+                        $repository->persist($entity);
+                    }
                 }
             });
         }

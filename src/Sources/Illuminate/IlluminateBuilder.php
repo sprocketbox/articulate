@@ -6,6 +6,7 @@ use BadMethodCallException;
 use Closure;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection as LaravelCollection;
 use Sprocketbox\Articulate\Attributes\EntityAttribute;
 use Sprocketbox\Articulate\Contracts\EntityMapping;
 use Sprocketbox\Articulate\Entities\Entity;
@@ -162,14 +163,17 @@ class IlluminateBuilder
 
     public function get($columns = ['*'])
     {
-        return $this->newCollection($this->manager->hydrate($this->getEntity(), $this->query->get($columns)));
+        return $this->newCollection($this->manager->hydrate($this->getEntity(), $this->getWith($this->query->get($columns))));
     }
 
-    protected function getWith(\stdClass $row): \stdClass
+    protected function getWith(LaravelCollection $data): LaravelCollection
     {
         if ($this->with) {
-            $data = (array)$row;
-            collect($this->with)->mapWithKeys(function ($entity, $key) use ($data) {
+            $data = $data->map(function ($row) {
+                return (array)$row;
+            });
+
+            collect($this->with)->each(function ($entity, $key) use (&$data) {
                 $conditions = null;
 
                 if (! is_numeric($key)) {
@@ -187,17 +191,18 @@ class IlluminateBuilder
                     if ($resolver) {
                         $repository = $this->manager->repository($attribute->getEntityClass());
 
-                        return [$attributeName => $resolver->get($repository, $data, $conditions)];
+                        if ($repository) {
+                            $data = $resolver->get($repository, $attributeName, $data, $conditions);
+                            return;
+                        }
                     }
                 }
 
                 throw new \InvalidArgumentException(sprintf('Cannot load %s for %s, it isn\'t a mapped entity attribute', $attributeName, $this->entity));
-            })->each(function ($data, $attribute) use (&$row) {
-                $row->{$attribute} = $data;
             });
         }
 
-        return $row;
+        return $data;
     }
 
     /**

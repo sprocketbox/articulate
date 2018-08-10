@@ -110,7 +110,7 @@ trait HandlesAttributeables
                 // If a mapping has a different column name, we want to actually set that attribute
                 // simply because it's useful to have that data
                 if ($attributeName && $columnName !== $attributeName) {
-                    $entity->set($columnName, $value);
+                    $entity->set($columnName, $attribute->parse($value, $data));
                 }
 
                 $entity->set($attributeName, $attribute->cast($value, $data));
@@ -199,7 +199,9 @@ trait HandlesAttributeables
 
         $attributes = $mapping->getAttributes()->map(function (Attribute $attribute) {
             return $attribute->getDefault();
-        })->merge(collect($entity->getAll()));
+        })->merge(collect($entity->getAll()))->each(function ($value, $key) use($entity) {
+            $entity->set($key, $value);
+        });
 
         if ($filter) {
             $attributes = $attributes->filter($filter);

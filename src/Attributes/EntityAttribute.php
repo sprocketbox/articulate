@@ -77,10 +77,10 @@ class EntityAttribute extends BaseAttribute
      *
      * @return string|null
      */
-    public function parse($value, array $data = []): ?string
+    public function parse($value, array $data = [])
     {
         if ($this->multiple) {
-            return null;
+            return $value;
         }
 
         $mapping = entities()->getEntityMapping($this->entityClass);

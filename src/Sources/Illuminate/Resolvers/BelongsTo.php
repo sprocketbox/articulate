@@ -2,6 +2,7 @@
 
 namespace Sprocketbox\Articulate\Sources\Illuminate\Resolvers;
 
+use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Contracts\EntityMapping;
 use Sprocketbox\Articulate\Contracts\Repository;
 use Sprocketbox\Articulate\Contracts\Resolver;
@@ -26,27 +27,44 @@ class BelongsTo implements Resolver
 
     /**
      * @param \Sprocketbox\Articulate\Contracts\Repository $repository
-     * @param array                                        $data
+     * @param string                                       $attribute
+     * @param array|\Illuminate\Support\Collection         $data
      * @param \Closure|null                                $condition
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
+     * @return array|\Sprocketbox\Articulate\Support\Collection
      */
-    public function get(Repository $repository, array $data = [], ?\Closure $condition = null)
+    public function get(Repository $repository, string $attribute, $data = [], ?\Closure $condition = null)
     {
-        $key = $data[$this->localKey] ?? null;
+        if ($data instanceof Collection) {
+            $key = $data->map(function ($row) {
+                return $row[$this->localKey] ?? null;
+            })->filter(function ($key) {
+                return ! empty($key);
+            });
+        }
 
         if ($key) {
             /**
              * @var \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
              */
             $query = $repository->source()->builder($repository->entity(), $repository->mapping());
-            $query->where($this->foreignKey, '=', $key);
+
+            if (\is_array($key)) {
+                $query->whereIn($this->foreignKey, $key);
+            } else {
+                $query->where($this->foreignKey, '=', $key);
+            }
 
             if ($condition) {
                 $condition($query);
             }
 
-            return $query->first();
+            $results = $query->get()->keyBy($this->foreignKey);
+
+            return $data->map(function ($row) use ($results, $attribute) {
+                $row[$attribute] = $results->get($row[$this->localKey]);
+                return $row;
+            });
         }
 
         return null;
