@@ -34,7 +34,7 @@ interface Attributeable
      */
     public function clean(): void;
 
-    public static function hydrating($attributeable, array $data): void;
+    public static function hydrating($attributeable, array &$data): void;
 
     public static function hydrated($attributeable, array $data): void;
 }
