@@ -8,4 +8,9 @@ class HasOne extends BelongsTo
     {
         parent::__construct($localKey, $foreignKey);
     }
+
+    public function getLocalKey(): ?string
+    {
+        return null;
+    }
 }

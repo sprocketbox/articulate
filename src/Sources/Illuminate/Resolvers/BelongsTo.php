@@ -19,6 +19,11 @@ class BelongsTo implements Resolver
      */
     protected $foreignKey;
 
+    /**
+     * @var bool
+     */
+    protected $cascade = true;
+
     public function __construct(string $localKey, string $foreignKey = 'id')
     {
         $this->localKey   = $localKey;
@@ -85,5 +90,37 @@ class BelongsTo implements Resolver
         $builder->select()
                 ->from($foreignMapping->getTable())
                 ->where($foreignKey, '=', $localKey);
+    }
+
+    /**
+     * Whether or not persists should cascade.
+     *
+     * @return bool
+     */
+    public function shouldCascade(): bool
+    {
+        return $this->cascade;
+    }
+
+    public function dontCascade(): self
+    {
+        $this->cascade = false;
+        return $this;
+    }
+
+    public function cascade(): self
+    {
+        $this->cascade = true;
+        return $this;
+    }
+
+    /**
+     * Get the local key for persisting.
+     *
+     * @return null|string
+     */
+    public function getLocalKey(): ?string
+    {
+        return $this->localKey;
     }
 }

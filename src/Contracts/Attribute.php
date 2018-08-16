@@ -12,6 +12,8 @@ interface Attribute
 
     public function getName(): string;
 
+    public function hasDefault(): bool;
+
     public function getDefault();
 
     public function generate(array $attributes);

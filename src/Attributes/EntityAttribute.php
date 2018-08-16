@@ -2,7 +2,6 @@
 
 namespace Sprocketbox\Articulate\Attributes;
 
-use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
 
@@ -62,12 +61,6 @@ class EntityAttribute extends BaseAttribute
             $value = collect($value);
         }
 
-        if ($this->multiple && $value instanceof Collection) {
-            return $value->map(function ($entity) {
-                return $this->cast($entity);
-            });
-        }
-
         return entities()->hydrate($this->entityClass, $value);
     }
 
@@ -115,5 +108,28 @@ class EntityAttribute extends BaseAttribute
     public function getResolver(): ?Resolver
     {
         return $this->resolver;
+    }
+
+    public function shouldCascade(): bool
+    {
+        return $this->getResolver() ? $this->getResolver()->shouldCascade() : false;
+    }
+
+    public function getColumnName(): string
+    {
+        if (parent::getColumnName()) {
+            return parent::getColumnName();
+        }
+
+        if ($this->getResolver()) {
+            return $this->getResolver()->getLocalKey() ?? '';
+        }
+
+        return '';
+    }
+
+    public function isDynamic(): bool
+    {
+        return parent::isDynamic() || null === $this->getResolver() || null === $this->getResolver()->getLocalKey();
     }
 }

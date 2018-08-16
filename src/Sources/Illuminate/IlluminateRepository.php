@@ -165,7 +165,7 @@ class IlluminateRepository extends Repository
         $fields     = $this->getDirty($entity);
 
         $attributes->each(function (Attribute $attribute) use (&$entities, $fields) {
-            if ($attribute instanceof EntityAttribute) {
+            if ($attribute instanceof EntityAttribute && $attribute->shouldCascade()) {
                 $childEntity = $fields[$attribute->getName()] ?? null;
 
                 if ($childEntity) {

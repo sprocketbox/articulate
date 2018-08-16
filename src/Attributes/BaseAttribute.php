@@ -126,6 +126,11 @@ abstract class BaseAttribute implements Attribute
         return $this->dynamic;
     }
 
+    public function hasDefault(): bool
+    {
+        return null !== $this->default;
+    }
+
     /**
      * @return mixed
      */
