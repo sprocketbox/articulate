@@ -1,6 +1,7 @@
 <?php
 
 namespace Sprocketbox\Articulate\Concerns;
+
 use Sprocketbox\Articulate\Contracts\Attributeable;
 
 /**
@@ -60,8 +61,12 @@ trait HasAttributes
     public function setAttribute(string $attribute, $value): void
     {
         $attribute                     = snake_case($attribute);
+        $dirty                         = ! \in_array($attribute, $this->_dirty, true) && ($this->_attributes[$attribute] ?? null) === $value;
         $this->_attributes[$attribute] = $value;
-        $this->_dirty[]                = $attribute;
+
+        if ($dirty) {
+            $this->_dirty[] = $attribute;
+        }
     }
 
     /**
