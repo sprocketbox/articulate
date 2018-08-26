@@ -22,7 +22,7 @@ trait HandlesAttributeables
      * @param LaravelCollection|array $data
      * @param bool                    $persisted
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component
+     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
      */
     public function hydrate(string $class, $data = [], bool $persisted = true)
     {

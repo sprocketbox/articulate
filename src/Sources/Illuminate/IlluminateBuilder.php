@@ -79,6 +79,19 @@ class IlluminateBuilder
         'delete',
     ];
 
+    /**
+     * @var array
+     */
+    protected $selectAs = [];
+
+    /**
+     * IlluminateBuilder constructor.
+     *
+     * @param \Illuminate\Database\Query\Builder                   $query
+     * @param \Sprocketbox\Articulate\EntityManager                $entityManager
+     * @param string                                               $entity
+     * @param null|\Sprocketbox\Articulate\Contracts\EntityMapping $mapping
+     */
     public function __construct(QueryBuilder $query, EntityManager $entityManager, string $entity, ?EntityMapping $mapping = null)
     {
         $this->setQuery($query);
@@ -87,11 +100,21 @@ class IlluminateBuilder
         $this->setEntity($entity);
     }
 
+    /**
+     * @param array $items
+     *
+     * @return \Sprocketbox\Articulate\Support\Collection
+     */
     protected function newCollection($items = [])
     {
         return new Collection($items);
     }
 
+    /**
+     * @param string $entity
+     *
+     * @return \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder
+     */
     public function setEntity(string $entity): self
     {
         $this->entity = $entity;
@@ -103,11 +126,17 @@ class IlluminateBuilder
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getEntity(): string
     {
         return $this->entity;
     }
 
+    /**
+     * @return \Sprocketbox\Articulate\Entities\Entity
+     */
     public function make(): Entity
     {
         $entityClass = $this->entity;
@@ -115,18 +144,31 @@ class IlluminateBuilder
         return new $entityClass;
     }
 
+    /**
+     * @param \Illuminate\Database\Query\Builder $query
+     *
+     * @return \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder
+     */
     public function setQuery(QueryBuilder $query): self
     {
         $this->query = $query;
         return $this;
     }
 
+    /**
+     * @param mixed ...$entities
+     *
+     * @return $this
+     */
     public function with(...$entities)
     {
         $this->with = array_merge($this->with, $entities);
         return $this;
     }
 
+    /**
+     * @param $entity
+     */
     public function has($entity)
     {
         $attribute = $this->mapping->getAttribute($entity);
@@ -144,6 +186,25 @@ class IlluminateBuilder
     }
 
     /**
+     * @param array  $columns
+     * @param string $entityAttribute
+     *
+     * @return $this
+     */
+    public function selectAs(array $columns, string $entityAttribute)
+    {
+        $attribute = $this->mapping->getAttribute($entityAttribute);
+
+        if (null === $attribute) {
+            throw new \InvalidArgumentException(sprintf('No mapped attribute %s', $entityAttribute));
+        }
+
+        $this->selectAs[$entityAttribute] = $columns;
+
+        return $this;
+    }
+
+    /**
      * @return \Illuminate\Database\Query\Builder
      */
     public function getQuery(): QueryBuilder
@@ -151,21 +212,61 @@ class IlluminateBuilder
         return $this->query;
     }
 
+    /**
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function toBase(): QueryBuilder
     {
         return $this->getQuery();
     }
 
+    /**
+     * @param array $columns
+     *
+     * @return mixed
+     */
     public function first($columns = ['*'])
     {
         return $this->take(1)->get($columns)->first();
     }
 
+    /**
+     * @param array $columns
+     *
+     * @return \Sprocketbox\Articulate\Support\Collection
+     */
     public function get($columns = ['*'])
     {
-        return $this->newCollection($this->manager->hydrate($this->getEntity(), $this->getWith($this->query->get($columns))));
+        return $this->newCollection($this->hydrate($this->getWith($this->query->get($columns))));
     }
 
+    /**
+     * @param \Illuminate\Support\Collection $data
+     *
+     * @return \Sprocketbox\Articulate\Support\Collection
+     */
+    protected function hydrate(LaravelCollection $data): Collection
+    {
+        if ($this->selectAs) {
+            $data->map(function (array $row) {
+                foreach ($this->selectAs as $attribute => $columns) {
+                    $attributeData = array_only($row, $columns);
+                    $row = array_except($row, $columns);
+                    $row[$attribute] = $attributeData;
+                }
+
+                return $row;
+            });
+        }
+
+        return $this->manager->hydrate($this->entity, $data);
+    }
+
+    /**
+     * @param \Illuminate\Support\Collection $data
+     *
+     * @return \Illuminate\Support\Collection
+     */
     protected function getWith(LaravelCollection $data): LaravelCollection
     {
         if ($this->with) {
@@ -189,12 +290,7 @@ class IlluminateBuilder
                     $resolver = $attribute->getResolver();
 
                     if ($resolver) {
-                        $repository = $this->manager->repository($attribute->getEntityClass());
-
-                        if ($repository) {
-                            $data = $resolver->get($repository, $attributeName, $data, $conditions);
-                            return;
-                        }
+                        $data = $resolver->get($attributeName, $data, $conditions);
                     }
                 }
 

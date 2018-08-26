@@ -2,34 +2,45 @@
 
 namespace Sprocketbox\Articulate\Sources\Illuminate\Resolvers;
 
-use Sprocketbox\Articulate\Contracts\Repository;
+use Illuminate\Support\Collection;
 
 class HasMany extends HasOne
 {
-    /**
-     * @param \Sprocketbox\Articulate\Contracts\Repository $repository
-     * @param string                                       $attribute
-     * @param array|\Illuminate\Support\Collection         $data
-     * @param \Closure|null                                $condition
-     *
-     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
-     */
-    public function get(Repository $repository, string $attribute, $data = [], ?\Closure $condition = null)
+
+    public function getRelated(string $attribute, Collection $data, ?\Closure $condition = null): ?Collection
     {
-        $key = $data[$this->localKey] ?? null;
+        $keys = $data->map(function ($row) {
+            return $row[$this->localKey] ?? null;
+        })->filter(function ($key) {
+            return ! empty($key);
+        });
 
-        if ($key) {
-            /**
-             * @var \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
-             */
-            $query = $repository->source()->builder($repository->entity(), $repository->mapping());
-            $query->where($this->foreignKey, '=', $key);
+        if ($keys->count() > 0) {
+            $repository = entities()->repository($this->relatedEntity);
 
-            if ($condition) {
-                $condition($query);
+            if ($repository) {
+                /**
+                 * @var \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
+                 */
+                $query = $repository->source()->builder($repository->entity(), $repository->mapping());
+
+                if ($keys->count() > 1) {
+                    $query->whereIn($this->relatedKey, $keys->toArray());
+                } else {
+                    $query->where($this->relatedKey, '=', $keys->first());
+                }
+
+                if ($condition) {
+                    $condition($query);
+                }
+
+                $results = $query->get()->groupBy($this->relatedKey);
+
+                return $data->map(function ($row) use ($results, $attribute) {
+                    $row[$attribute] = $results->get($row[$this->localKey]);
+                    return $row;
+                });
             }
-
-            return $query->get();
         }
 
         return null;

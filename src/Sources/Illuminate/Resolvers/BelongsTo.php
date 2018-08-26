@@ -4,8 +4,8 @@ namespace Sprocketbox\Articulate\Sources\Illuminate\Resolvers;
 
 use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Contracts\EntityMapping;
-use Sprocketbox\Articulate\Contracts\Repository;
 use Sprocketbox\Articulate\Contracts\Resolver;
+use Sprocketbox\Articulate\Entities\Entity;
 
 class BelongsTo implements Resolver
 {
@@ -17,78 +17,103 @@ class BelongsTo implements Resolver
     /**
      * @var string
      */
-    protected $foreignKey;
+    protected $relatedKey;
 
     /**
      * @var bool
      */
     protected $cascade = true;
 
-    public function __construct(string $localKey, string $foreignKey = 'id')
+    /**
+     * @var string
+     */
+    protected $entity;
+
+    /**
+     * @var string
+     */
+    protected $relatedEntity;
+
+    public function __construct(string $entity, string $relatedEntity, string $localKey, string $relatedKey = 'id')
     {
-        $this->localKey   = $localKey;
-        $this->foreignKey = $foreignKey;
+        $this->localKey      = $localKey;
+        $this->relatedKey    = $relatedKey;
+        $this->entity        = $entity;
+        $this->relatedEntity = $relatedEntity;
     }
 
     /**
-     * @param \Sprocketbox\Articulate\Contracts\Repository $repository
-     * @param string                                       $attribute
-     * @param array|\Illuminate\Support\Collection         $data
-     * @param \Closure|null                                $condition
+     * Get related entities
      *
-     * @return array|\Sprocketbox\Articulate\Support\Collection
+     * @param string                         $attribute
+     * @param \Illuminate\Support\Collection $data
+     * @param \Closure|null                  $condition
+     *
+     * @return null|Collection
      */
-    public function get(Repository $repository, string $attribute, $data = [], ?\Closure $condition = null)
+    public function getRelated(string $attribute, Collection $data, ?\Closure $condition = null): ?Collection
     {
-        if ($data instanceof Collection) {
-            $key = $data->map(function ($row) {
-                return $row[$this->localKey] ?? null;
-            })->filter(function ($key) {
-                return ! empty($key);
-            });
-        }
+        $keys = $data->map(function ($row) {
+            return $row[$this->localKey] ?? null;
+        })->filter(function ($key) {
+            return ! empty($key);
+        });
 
-        if ($key) {
-            /**
-             * @var \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
-             */
-            $query = $repository->source()->builder($repository->entity(), $repository->mapping());
+        if ($keys->count() > 0) {
+            $repository = entities()->repository($this->relatedEntity);
 
-            if (\is_array($key)) {
-                $query->whereIn($this->foreignKey, $key);
-            } else {
-                $query->where($this->foreignKey, '=', $key);
+            if ($repository) {
+                /**
+                 * @var \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder $query
+                 */
+                $query = $repository->source()->builder($repository->entity(), $repository->mapping());
+
+                if ($keys->count() > 1) {
+                    $query->whereIn($this->relatedKey, $keys->toArray());
+                } else {
+                    $query->where($this->relatedKey, '=', $keys->first());
+                }
+
+                if ($condition) {
+                    $condition($query);
+                }
+
+                $results = $query->get()->keyBy($this->relatedKey);
+
+                return $data->map(function ($row) use ($results, $attribute) {
+                    $row[$attribute] = $results->get($row[$this->localKey]);
+                    return $row;
+                });
             }
-
-            if ($condition) {
-                $condition($query);
-            }
-
-            $results = $query->get()->keyBy($this->foreignKey);
-
-            return $data->map(function ($row) use ($results, $attribute) {
-                $row[$attribute] = $results->get($row[$this->localKey]);
-                return $row;
-            });
         }
 
         return null;
     }
 
     /**
+     * @param \Sprocketbox\Articulate\Entities\Entity                                            $entity
+     * @param \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection $related
+     *
+     * @return mixed
+     */
+    public function persistRelated(Entity $entity, $related): void
+    {
+    }
+
+    /**
      * @param \Sprocketbox\Articulate\Sources\Illuminate\IlluminateBuilder                                                       $builder
-     * @param \Sprocketbox\Articulate\Contracts\EntityMapping|\Sprocketbox\Articulate\Sources\Illuminate\IlluminateEntityMapping $localMapping
-     * @param \Sprocketbox\Articulate\Contracts\EntityMapping|\Sprocketbox\Articulate\Sources\Illuminate\IlluminateEntityMapping $foreignMapping
+     * @param \Sprocketbox\Articulate\Contracts\EntityMapping|\Sprocketbox\Articulate\Sources\Illuminate\IlluminateEntityMapping $entityMapping
+     * @param \Sprocketbox\Articulate\Contracts\EntityMapping|\Sprocketbox\Articulate\Sources\Illuminate\IlluminateEntityMapping $relatedMapping
      *
      * @return void
      */
-    public function has($builder, EntityMapping $localMapping, EntityMapping $foreignMapping)
+    public function hasRelated($builder, EntityMapping $entityMapping, EntityMapping $relatedMapping): void
     {
-        $foreignKey = $foreignMapping->getTable() . '.' . $this->foreignKey;
-        $localKey   = $localMapping->getTable() . '.' . $this->localKey;
+        $foreignKey = $relatedMapping->getTable() . '.' . $this->relatedKey;
+        $localKey   = $entityMapping->getTable() . '.' . $this->localKey;
 
         $builder->select()
-                ->from($foreignMapping->getTable())
+                ->from($relatedMapping->getTable())
                 ->where($foreignKey, '=', $localKey);
     }
 
@@ -122,5 +147,25 @@ class BelongsTo implements Resolver
     public function getLocalKey(): ?string
     {
         return $this->localKey;
+    }
+
+    /**
+     * Get the entity that owns this resolver/relationship
+     *
+     * @return string
+     */
+    public function getEntity(): string
+    {
+        return $this->entity;
+    }
+
+    /**
+     * Get the related entity for this relationship
+     *
+     * @return string
+     */
+    public function getRelatedEntity(): string
+    {
+        return $this->relatedEntity;
     }
 }

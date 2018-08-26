@@ -157,20 +157,23 @@ class IlluminateRepository extends Repository
             throw new \InvalidArgumentException(sprintf('Entity %s does not belong to the repository %s', \get_class($entity), \get_class($this)));
         }
 
-        $keyName    = $this->mapping()->getKey();
-        $keyValue   = $entity->get($keyName);
-        $insert     = ! $entity->isPersisted();
-        $entities   = [];
-        $attributes = $this->mapping()->getAttributes();
-        $fields     = $this->getDirty($entity);
+        $keyName          = $this->mapping()->getKey();
+        $keyValue         = $entity->get($keyName);
+        $insert           = ! $entity->isPersisted();
+        $attributes       = $this->mapping()->getAttributes();
+        $entities         = [];
+        $fields           = $this->getDirty($entity);
+        $entityAttributes = $attributes->filter(function (Attribute $attribute) {
+            return $attribute instanceof EntityAttribute && $attribute->shouldCascade();
+        })->mapWithKeys(function (EntityAttribute $attribute) {
+            return [$attribute->getEntityClass() => $attribute];
+        });
 
-        $attributes->each(function (Attribute $attribute) use (&$entities, $fields) {
-            if ($attribute instanceof EntityAttribute && $attribute->shouldCascade()) {
-                $childEntity = $fields[$attribute->getName()] ?? null;
+        $attributes->each(function (EntityAttribute $attribute) use (&$entities, $fields) {
+            $childEntity = $fields[$attribute->getName()] ?? null;
 
-                if ($childEntity) {
-                    $entities[$attribute->getEntityClass()] = $childEntity;
-                }
+            if ($childEntity) {
+                $entities[$attribute->getEntityClass()] = $childEntity;
             }
         });
 
@@ -212,17 +215,31 @@ class IlluminateRepository extends Repository
         }
 
         if ($entities) {
-            collect($entities)->each(function ($entity, string $entityClass) {
+            collect($entities)->each(function ($relatedEntity, string $entityClass) use ($entity, $entityAttributes) {
                 $repository = $this->manager()->repository($entityClass);
 
                 if ($repository) {
-                    if (\is_array($entity)) {
-                        array_walk($entity, function (Entity $entity) use ($repository) {
+                    if ($relatedEntity instanceof \Illuminate\Support\Collection) {
+                        $relatedEntity = $relatedEntity->toArray();
+                    }
+
+                    if (\is_array($relatedEntity)) {
+                        array_walk($relatedEntity, function (Entity $entity) use ($repository) {
                             $repository->persist($entity);
                         });
-                    } else if ($entity instanceof Entity) {
-                        $repository->persist($entity);
+                    } else if ($relatedEntity instanceof Entity) {
+                        $repository->persist($relatedEntity);
                     }
+                }
+
+                /**
+                 * @var EntityAttribute|null $attribute
+                 */
+                $attribute = $entityAttributes->get($entityClass);
+                $resolver  = $attribute->getResolver() ?? null;
+
+                if ($resolver) {
+                    $resolver->persistRelated($entity, $relatedEntity);
                 }
             });
         }

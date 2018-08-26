@@ -14,7 +14,7 @@ abstract class Component implements Attributeable, \ArrayAccess, \JsonSerializab
 {
     use Concerns\HasAttributes;
 
-    public static function hydrating($attributeable, array $data): void
+    public static function hydrating($attributeable, array &$data): void
     {
     }
 
