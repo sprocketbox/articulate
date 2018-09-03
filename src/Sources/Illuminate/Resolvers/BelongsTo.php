@@ -36,10 +36,10 @@ class BelongsTo implements Resolver
 
     public function __construct(string $entity, string $relatedEntity, string $localKey, string $relatedKey = 'id')
     {
-        $this->localKey      = $localKey;
-        $this->relatedKey    = $relatedKey;
         $this->entity        = $entity;
         $this->relatedEntity = $relatedEntity;
+        $this->localKey      = $localKey;
+        $this->relatedKey    = $relatedKey;
     }
 
     /**
