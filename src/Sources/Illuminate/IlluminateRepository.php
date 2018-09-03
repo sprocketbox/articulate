@@ -165,15 +165,13 @@ class IlluminateRepository extends Repository
         $fields           = $this->getDirty($entity);
         $entityAttributes = $attributes->filter(function (Attribute $attribute) {
             return $attribute instanceof EntityAttribute && $attribute->shouldCascade();
-        })->mapWithKeys(function (EntityAttribute $attribute) {
-            return [$attribute->getEntityClass() => $attribute];
         });
 
-        $attributes->each(function (EntityAttribute $attribute) use (&$entities, $fields) {
-            $childEntity = $fields[$attribute->getName()] ?? null;
+        $entityAttributes->each(function (EntityAttribute $attribute) use (&$entities, $entity) {
+            $childEntity = $entity->getAttribute($attribute->getName()) ?? null;
 
             if ($childEntity) {
-                $entities[$attribute->getEntityClass()] = $childEntity;
+                $entities[$attribute->getName()] = $childEntity;
             }
         });
 
@@ -215,31 +213,33 @@ class IlluminateRepository extends Repository
         }
 
         if ($entities) {
-            collect($entities)->each(function ($relatedEntity, string $entityClass) use ($entity, $entityAttributes) {
-                $repository = $this->manager()->repository($entityClass);
-
-                if ($repository) {
-                    if ($relatedEntity instanceof \Illuminate\Support\Collection) {
-                        $relatedEntity = $relatedEntity->toArray();
-                    }
-
-                    if (\is_array($relatedEntity)) {
-                        array_walk($relatedEntity, function (Entity $entity) use ($repository) {
-                            $repository->persist($entity);
-                        });
-                    } else if ($relatedEntity instanceof Entity) {
-                        $repository->persist($relatedEntity);
-                    }
-                }
-
+            collect($entities)->each(function ($relatedEntity, string $attributeName) use ($entity, $entityAttributes) {
                 /**
                  * @var EntityAttribute|null $attribute
                  */
-                $attribute = $entityAttributes->get($entityClass);
-                $resolver  = $attribute->getResolver() ?? null;
+                $attribute = $entityAttributes->get($attributeName);
 
-                if ($resolver) {
-                    $resolver->persistRelated($entity, $relatedEntity);
+                if ($attribute) {
+                    $repository = $this->manager()->repository($attribute->getEntityClass());
+
+                    if ($repository) {
+                        if ($relatedEntity instanceof \Illuminate\Support\Collection) {
+                            $relatedEntity = $relatedEntity->toArray();
+                        }
+
+                        if (\is_array($relatedEntity)) {
+                            array_walk($relatedEntity, function (Entity $entity) use ($repository) {
+                                $repository->persist($entity);
+                            });
+                        } else if ($relatedEntity instanceof Entity) {
+                            $repository->persist($relatedEntity);
+                        }
+                    }
+                    $resolver = $attribute->getResolver() ?? null;
+
+                    if ($resolver) {
+                        $resolver->persistRelated($entity, $relatedEntity);
+                    }
                 }
             });
         }
