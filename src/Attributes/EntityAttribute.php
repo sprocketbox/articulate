@@ -117,15 +117,11 @@ class EntityAttribute extends BaseAttribute
 
     public function getColumnName(): string
     {
-        if (parent::getColumnName()) {
-            return parent::getColumnName();
-        }
-
         if ($this->getResolver()) {
             return $this->getResolver()->getLocalKey() ?? '';
         }
 
-        return '';
+        return parent::getColumnName();
     }
 
     public function isDynamic(): bool

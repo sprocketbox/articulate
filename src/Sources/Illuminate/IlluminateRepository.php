@@ -175,15 +175,17 @@ class IlluminateRepository extends Repository
             }
         });
 
-        $fields = collect($fields)->filter(function ($value, $key) use ($attributes) {
-            $attribute = $attributes->get($key);
+        $fields = collect($fields)
+            ->filter(function ($value, $key) use ($attributes) {
+                $attribute = $attributes->get($key);
 
-            if ($attribute) {
-                return ! $attribute->isDynamic();
-            }
+                if ($attribute) {
+                    return ! $attribute->isDynamic();
+                }
 
-            return true;
-        })->toArray();
+                return true;
+            })
+            ->toArray();
 
         if (\count($fields)) {
             $now = Carbon::now();
