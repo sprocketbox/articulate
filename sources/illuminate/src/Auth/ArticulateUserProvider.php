@@ -1,6 +1,6 @@
 <?php
 
-namespace Sprocketbox\Articulate\Auth;
+namespace Sprocketbox\Articulate\Sources\Illuminate;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;

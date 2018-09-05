@@ -3,7 +3,6 @@
   "description": "A simple lightweight drop in to replace Eloquent",
   "type": "library",
   "license": "MIT",
-  "version": "dev-develop",
   "authors": [
     {
       "name": "Ollie Read",
@@ -14,6 +13,7 @@
     "php": "^7.2",
     "laravel/framework": "~5.6",
     "ramsey/uuid": "^3.7",
+    "sprocketbox/articulate-source": "1.0.0",
     "ext-json": "*"
   },
   "autoload": {
@@ -32,6 +32,9 @@
     }
   },
   "suggest": {
+    "sprocketbox/articulate-illuminate": "Allows for Articulate to be used with Laravel",
+    "sprocketbox/articulate-respite": "Allows for Articulate to be used with Respite",
+    "sprocketbox/articulate-basic": "Allows for Articulate to be used with basic datasources such as arrays",
     "sprocketbox/respite": "Allows for the usage of RESTful APIs as a data source"
   }
 }

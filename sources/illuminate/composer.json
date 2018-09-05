@@ -1,0 +1,35 @@
+{
+  "name": "sprocketbox/articulate-illuminate",
+  "description": "An Articulate source providing Illuminate support",
+  "type": "library",
+  "license": "MIT",
+  "version": "dev-develop",
+  "authors": [
+    {
+      "name": "Ollie Read",
+      "email": "ollie@sprocketbox.io"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "sprocketbox/articulate": "1",
+    "ext-json": "*"
+  },
+  "provide": {
+    "sprocketbox/articulate-source": "1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Sprocketbox\\Articulate\\Sources\\Illuminate": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Sprocketbox\\Articulate\\Sources\\Illuminate\\ServiceProvider"
+      ]
+    }
+  },
+  "suggest": {
+  }
+}

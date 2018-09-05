@@ -34,12 +34,4 @@ return [
         'recursive' => false,
     ],
 
-    'sources' => [
-
-        \Sprocketbox\Articulate\Sources\Illuminate\IlluminateSource::class,
-        //\Sprocketbox\Articulate\Sources\Respite\RespiteSource::class,
-        //\Sprocketbox\Articulate\Sources\Basic\BasicSource::class,
-
-    ],
-
 ];
