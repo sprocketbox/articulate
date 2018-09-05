@@ -22,16 +22,4 @@ return [
         //'utc'         => \Sprocketbox\Articulate\Attributes\MongoDB\UtcColumn::class,
     ],
 
-    'extra' => [
-        /*
-         * Whether or not to enable the articulate authentication driver
-         */
-        'auth'      => true,
-
-        /*
-         * Whether or not to enable the query builder mixin for recursive ctes
-         */
-        'recursive' => false,
-    ],
-
 ];

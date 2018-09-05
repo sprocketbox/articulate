@@ -23,11 +23,6 @@ class EntityAttribute extends BaseAttribute
     protected $multiple;
 
     /**
-     * @var \Sprocketbox\Articulate\Contracts\Resolver|\Closure
-     */
-    protected $resolver;
-
-    /**
      * EntityColumn constructor.
      *
      * @param string $attributeName
@@ -93,39 +88,8 @@ class EntityAttribute extends BaseAttribute
         return $this;
     }
 
-    public function setResolver(Resolver $resolver): self
-    {
-        $this->resolver = $resolver;
-
-        return $this;
-    }
-
     public function getEntityClass(): string
     {
         return $this->entityClass;
-    }
-
-    public function getResolver(): ?Resolver
-    {
-        return $this->resolver;
-    }
-
-    public function shouldCascade(): bool
-    {
-        return $this->getResolver() ? $this->getResolver()->shouldCascade() : false;
-    }
-
-    public function getColumnName(): string
-    {
-        if ($this->getResolver()) {
-            return $this->getResolver()->getLocalKey() ?? '';
-        }
-
-        return parent::getColumnName();
-    }
-
-    public function isDynamic(): bool
-    {
-        return parent::isDynamic() || null === $this->getResolver() || null === $this->getResolver()->getLocalKey();
     }
 }

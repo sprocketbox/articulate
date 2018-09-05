@@ -67,7 +67,7 @@ trait HandlesMappings
     /**
      * @param string $entityClass
      *
-     * @return \Sprocketbox\Articulate\Entities\EntityMapping
+     * @return \Sprocketbox\Articulate\Contracts\EntityMapping
      */
     public function getEntityMapping(string $entityClass): EntityMapping
     {

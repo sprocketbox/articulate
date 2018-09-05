@@ -60,7 +60,6 @@ class ServiceProvider extends BaseProvider
             return new ComponentMapping($name);
         });
 
-        $this->registerSources();
         $this->registerEntities();
     }
 
@@ -74,15 +73,6 @@ class ServiceProvider extends BaseProvider
 
         foreach ($mappers as $mapper) {
             $this->entities->registerEntity(new $mapper);
-        }
-    }
-
-    private function registerSources(): void
-    {
-        $sources = config('articulate.sources', []);
-
-        foreach ($sources as $source) {
-            $this->entities->registerSource($source);
         }
     }
 }
