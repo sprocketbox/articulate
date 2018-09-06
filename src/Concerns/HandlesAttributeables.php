@@ -120,8 +120,13 @@ trait HandlesAttributeables
                     $entity->set($columnName, $attribute->parse($value, $data));
                 }
 
-                $entity->set($attributeName, $attribute->cast($value, $data));
+                $key   = $attributeName;
+                $value = $attribute->cast($value, $data);
             }
+
+            // All for the setting of data that isn't mapped. This can be especially useful for things
+            // like belongs to many relationships
+            $entity->set($key, $value);
         });
 
         $entity::hydrated($entity, $data);
@@ -206,7 +211,7 @@ trait HandlesAttributeables
 
         $attributes = $mapping->getAttributes()->map(function (Attribute $attribute) {
             return $attribute->getDefault();
-        })->merge(collect($entity->getAll()))->each(function ($value, $key) use($entity) {
+        })->merge(collect($entity->getAll()))->each(function ($value, $key) use ($entity) {
             $entity->set($key, $value);
         });
 
