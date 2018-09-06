@@ -2,7 +2,7 @@
 
 namespace Sprocketbox\Articulate\Concerns;
 
-use Sprocketbox\Articulate\Contracts\Attributeable;
+use Sprocketbox\Articulate\Components\Component;
 
 /**
  * Trait HasAttributes
@@ -60,12 +60,11 @@ trait HasAttributes
      */
     public function setAttribute(string $attribute, $value): void
     {
-        $attribute                     = snake_case($attribute);
-        $dirty                         = ! \in_array($attribute, $this->_dirty, true) && ($this->_attributes[$attribute] ?? null) === $value;
-        $this->_attributes[$attribute] = $value;
+        $attribute = snake_case($attribute);
 
-        if ($dirty) {
-            $this->_dirty[] = $attribute;
+        if ($this->_attributes[$attribute] ?? null !== $value) {
+            $this->_dirty[]                = $attribute;
+            $this->_attributes[$attribute] = $value;
         }
     }
 
@@ -141,7 +140,7 @@ trait HasAttributes
         }
 
         foreach ($this->_attributes as $key => $value) {
-            if ($value instanceof Attributeable && $value->isDirty($column)) {
+            if ($value instanceof Component && $value->isDirty($column)) {
                 return true;
             }
         }
@@ -157,7 +156,7 @@ trait HasAttributes
         $this->_dirty = [];
 
         foreach ($this->_attributes as $key => $value) {
-            if ($value instanceof Attributeable) {
+            if ($value instanceof Component) {
                 $value->clean();
             }
         }
