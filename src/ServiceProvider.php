@@ -28,6 +28,7 @@ class ServiceProvider extends BaseProvider
         if ($this->app->runningInConsole()) {
             $this->publishConfig();
         }
+        $this->registerEntities();
     }
 
     /**
@@ -59,8 +60,6 @@ class ServiceProvider extends BaseProvider
             [$name] = $arguments;
             return new ComponentMapping($name);
         });
-
-        $this->registerEntities();
     }
 
     /**
