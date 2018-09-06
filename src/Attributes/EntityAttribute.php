@@ -2,8 +2,8 @@
 
 namespace Sprocketbox\Articulate\Attributes;
 
-use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
+use Sprocketbox\Articulate\Support\Collection;
 
 /**
  * Class EntityColumn
@@ -46,6 +46,16 @@ class EntityAttribute extends BaseAttribute
     {
         if (! $value || $value instanceof $this->entityClass) {
             return $value;
+        }
+
+        if ($this->multiple && $value instanceof Collection) {
+            if ($value->first() instanceof $this->entityClass) {
+                return $value;
+            }
+
+            return $value->map(function ($entity) {
+                return $this->cast($entity);
+            });
         }
 
         if (is_scalar($value)) {
