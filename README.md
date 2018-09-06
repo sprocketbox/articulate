@@ -7,8 +7,7 @@
 - **Author**: Ollie Read 
 - **Author Homepage**: http://sprocketbox.io
 
-Articulate is a data source agnostic entity mapper package for Laravel. It allows you to use simple data objects (entities) 
-without having to deal with the nuances of an ORM, or worrying about where they came from.
+
 
 ## Documentation
 

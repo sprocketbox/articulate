@@ -2,7 +2,6 @@
 
 namespace Sprocketbox\Articulate\Attributes;
 
-use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Contracts\Resolver;
 use Sprocketbox\Articulate\Entities\Entity;
 
@@ -22,11 +21,6 @@ class EntityAttribute extends BaseAttribute
      * @var bool
      */
     protected $multiple;
-
-    /**
-     * @var \Sprocketbox\Articulate\Contracts\Resolver|\Closure
-     */
-    protected $resolver;
 
     /**
      * EntityColumn constructor.
@@ -62,12 +56,6 @@ class EntityAttribute extends BaseAttribute
             $value = collect($value);
         }
 
-        if ($this->multiple && $value instanceof Collection) {
-            return $value->map(function ($entity) {
-                return $this->cast($entity);
-            });
-        }
-
         return entities()->hydrate($this->entityClass, $value);
     }
 
@@ -100,20 +88,8 @@ class EntityAttribute extends BaseAttribute
         return $this;
     }
 
-    public function setResolver(Resolver $resolver): self
-    {
-        $this->resolver = $resolver;
-
-        return $this;
-    }
-
     public function getEntityClass(): string
     {
         return $this->entityClass;
-    }
-
-    public function getResolver(): ?Resolver
-    {
-        return $this->resolver;
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Support\Collection as LaravelCollection;
 use Sprocketbox\Articulate\Contracts\ComponentMapper;
 use Sprocketbox\Articulate\Contracts\EntityMapping as MappingContract;
 use Sprocketbox\Articulate\Contracts\Repository as RepositoryContract;
+use Sprocketbox\Articulate\Contracts\Source;
 use Sprocketbox\Articulate\Entities\EntityMapper;
 use Sprocketbox\Articulate\Repositories\Repository;
 
@@ -43,8 +44,8 @@ class EntityManager
 
         $source = $this->getSource($mapper->source());
 
-        if (! $source) {
-            throw new \RuntimeException(sprintf('Invalid source %s for entity %s', $source, $entity));
+        if (! $source || ! ($source instanceof Source)) {
+            throw new \RuntimeException(sprintf('Invalid source %s for entity %s', $mapper->source(), $entity));
         }
 
         $mapping = $source->newMapping($entity);

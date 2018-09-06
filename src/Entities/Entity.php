@@ -30,7 +30,7 @@ abstract class Entity implements Attributeable, \ArrayAccess, \JsonSerializable
         return $this;
     }
 
-    public static function hydrating($attributeable, array $data): void
+    public static function hydrating($attributeable, array &$data): void
     {
         Hydrating::dispatch($attributeable, $data);
     }

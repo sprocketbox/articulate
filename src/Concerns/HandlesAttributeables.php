@@ -12,6 +12,13 @@ use Sprocketbox\Articulate\Contracts\EntityMapping;
 use Sprocketbox\Articulate\Entities\Entity;
 use Sprocketbox\Articulate\Support\Collection;
 
+/**
+ * Trait HandlesAttributeables
+ *
+ * @mixin \Sprocketbox\Articulate\EntityManager
+ *
+ * @package Sprocketbox\Articulate\Concerns
+ */
 trait HandlesAttributeables
 {
 
@@ -22,7 +29,7 @@ trait HandlesAttributeables
      * @param LaravelCollection|array $data
      * @param bool                    $persisted
      *
-     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Components\Component
+     * @return \Sprocketbox\Articulate\Entities\Entity|\Sprocketbox\Articulate\Support\Collection
      */
     public function hydrate(string $class, $data = [], bool $persisted = true)
     {

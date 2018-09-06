@@ -18,7 +18,7 @@ abstract class EntityEvent
      */
     protected $attributes = [];
 
-    public function __construct(Entity $entity, array $attributes)
+    public function __construct(Entity $entity, array &$attributes)
     {
         $this->entity     = $entity;
         $this->attributes = $attributes;
@@ -29,7 +29,7 @@ abstract class EntityEvent
         return $this->entity;
     }
 
-    public function attributes(): array
+    public function &attributes(): array
     {
         return $this->attributes;
     }
