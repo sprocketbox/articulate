@@ -62,7 +62,7 @@ trait HasAttributes
     {
         $attribute = snake_case($attribute);
 
-        if ($this->_attributes[$attribute] ?? null !== $value) {
+        if ($this->getAttribute($attribute) !== $value) {
             $this->_dirty[]                = $attribute;
             $this->_attributes[$attribute] = $value;
         }
