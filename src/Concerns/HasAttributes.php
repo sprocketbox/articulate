@@ -123,7 +123,7 @@ trait HasAttributes
      */
     public function __isset($name)
     {
-        return isset($this->_attributes[$name]);
+        return isset($this->_attributes[snake_case($name)]);
     }
 
     /**
