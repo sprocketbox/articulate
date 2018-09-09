@@ -3,7 +3,7 @@
   "description": "A simple lightweight drop in to replace Eloquent",
   "type": "library",
   "license": "MIT",
-  "version": "v1.0.1",
+  "version": "v1.0.2",
   "authors": [
     {
       "name": "Ollie Read",
