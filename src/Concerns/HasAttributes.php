@@ -2,7 +2,9 @@
 
 namespace Sprocketbox\Articulate\Concerns;
 
+use Illuminate\Support\Collection;
 use Sprocketbox\Articulate\Components\Component;
+use Sprocketbox\Articulate\Contracts\Attributeable;
 
 /**
  * Trait HasAttributes
@@ -113,7 +115,22 @@ trait HasAttributes
 
     public function getAttributes(): array
     {
-        return $this->_attributes;
+        return $this->getAllAttributes(collect($this->_attributes))->toArray();
+    }
+
+    private function getAllAttributes(Collection $attributes)
+    {
+        return $attributes->map(function ($attribute) {
+            if ($attribute instanceof Attributeable) {
+                return $attribute->getAttributes();
+            }
+
+            if ($attribute instanceof Collection) {
+                return $this->getAllAttributes($attribute);
+            }
+
+            return $attribute;
+        });
     }
 
     /**
