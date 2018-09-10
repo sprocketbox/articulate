@@ -22,4 +22,8 @@ return [
         //'utc'         => \Sprocketbox\Articulate\Attributes\MongoDB\UtcColumn::class,
     ],
 
+    'sources' => [
+        //\Sprocketbox\Articulate\Sources\Illuminate\Source::class,
+    ]
+
 ];

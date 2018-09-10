@@ -28,6 +28,8 @@ class ServiceProvider extends BaseProvider
         if ($this->app->runningInConsole()) {
             $this->publishConfig();
         }
+
+        $this->registerSources();
         $this->registerEntities();
     }
 
@@ -60,6 +62,21 @@ class ServiceProvider extends BaseProvider
             [$name] = $arguments;
             return new ComponentMapping($name);
         });
+    }
+
+    /**
+     *
+     * @throws \RuntimeException
+     */
+    private function registerSources(): void
+    {
+        $sources = config('articulate.sources', []);
+
+        foreach ($sources as $source) {
+            if (class_exists($source)) {
+                $this->entities->registerSource($source);
+            }
+        }
     }
 
     /**
