@@ -22,7 +22,8 @@
       "Sprocketbox\\Articulate\\": "src/"
     },
     "files": [
-      "src/helpers.php"
+      "src/helpers.php",
+      "src/dispatchable.php"
     ]
   },
   "extra": {
@@ -36,6 +37,7 @@
     "sprocketbox/articulate-illuminate": "Allows for Articulate to be used with Laravel",
     "sprocketbox/articulate-respite": "Allows for Articulate to be used with Respite",
     "sprocketbox/articulate-basic": "Allows for Articulate to be used with basic datasources such as arrays",
-    "sprocketbox/respite": "Allows for the usage of RESTful APIs as a data source"
+    "sprocketbox/respite": "Allows for the usage of RESTful APIs as a data source",
+    "illuminate/broadcasting": "Allows for events to be broadcast"
   }
 }
