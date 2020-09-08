@@ -1,9 +1,15 @@
 {
   "name": "sprocketbox/articulate",
-  "description": "A simple lightweight drop in to replace Eloquent",
+  "description": "A PHP 'entity mapper' or entity framework",
+  "keywords": [
+    "entity",
+    "framework",
+    "mapper",
+    "entitymapper",
+    "datamapper"
+  ],
   "type": "library",
   "license": "MIT",
-  "version": "v1.1.0",
   "authors": [
     {
       "name": "Ollie Read",
@@ -11,31 +17,13 @@
     }
   ],
   "require": {
-    "php": "^7.1",
-    "laravel/framework": "~5.6 || ~5.7",
-    "ramsey/uuid": "^3.7",
-    "sprocketbox/articulate-source": "1.0.0",
+    "php": "^7.4",
+    "ramsey/uuid": "^4.0",
     "ext-json": "*"
   },
   "autoload": {
     "psr-4": {
       "Sprocketbox\\Articulate\\": "src/"
-    },
-    "files": [
-      "src/helpers.php"
-    ]
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Sprocketbox\\Articulate\\ServiceProvider"
-      ]
     }
-  },
-  "suggest": {
-    "sprocketbox/articulate-illuminate": "Allows for Articulate to be used with Laravel",
-    "sprocketbox/articulate-respite": "Allows for Articulate to be used with Respite",
-    "sprocketbox/articulate-basic": "Allows for Articulate to be used with basic datasources such as arrays",
-    "sprocketbox/respite": "Allows for the usage of RESTful APIs as a data source"
   }
 }
